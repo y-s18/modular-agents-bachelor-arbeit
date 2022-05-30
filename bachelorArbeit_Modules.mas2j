@@ -1,0 +1,21 @@
+MAS bachelorArbeit_Modules {
+
+	infrastructure: Centralised
+	environment: jason.eis.EISAdapter
+	agents:
+		agent sample_agent;
+	
+//	infrastructure: Centralised
+//	environment: jason.eis.EISAdapter
+//	agents:
+//		test#15;
+//		/* change # number
+//		 * SC: change entities number
+//		 * SC: entities number is per team
+//		 * SC: change teamsPerMatch
+//		 * EISC: add agents to entities same password if same team
+//		 * EISC: enumerate username
+//		 */
+	aslSourcePath:
+		"src/asl";
+}
