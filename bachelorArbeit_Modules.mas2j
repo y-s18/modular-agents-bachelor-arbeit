@@ -3,7 +3,8 @@ MAS bachelorArbeit_Modules {
 	infrastructure: Centralised
 	environment: jason.eis.EISAdapter
 	agents:
-		agent sample_agent;
+//		explore;
+		agent;
 	
 //	infrastructure: Centralised
 //	environment: jason.eis.EISAdapter
