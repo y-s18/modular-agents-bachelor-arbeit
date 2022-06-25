@@ -5,9 +5,12 @@
 .classpath
 .project
 .vscode/*
+.settings/*
 build/*
 bin/*
 *.class
 lib/logs/*
 lib/replays/*
 lib/results/*
+
+src/asl/experiments.asl
