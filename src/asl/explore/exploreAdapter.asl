@@ -1,14 +1,27 @@
-{ include("explore.asl", exploreAdapter_INCL_explore) }
 
 {begin namespace(priv_exploreAdapter, local)}
-{end}
 exploredListB0([]).
 exploredListB1([]).
 exploredListGoal([]).
 exploredListTaskboard([]).
+{end}
 
-+!setUp
-    <- ?exploreAdapter_INCL_explore::export_SearchRsltList(ImportedList);
++!processExploredPOIs(AgentPosX, AgentPosY)
+    : agent_INCL_explore::export_SearchRsltList(ImportedList) & ImportedList \== []
+    <-  !priv_exploreAdapter::setUp(AgentPosX, AgentPosY);
+        ?priv_exploreAdapter::elementToBeChecked(Element);
+        !priv_exploreAdapter::checkElementsType(Element);
+        ?priv_exploreAdapter::elementType(ElementType);
+        !priv_exploreAdapter::processImportedList(ElementType);
+        !export_POIs;
+    .
+
+{begin namespace(priv_exploreAdapter, local)}
++!setUp(AgentPosX, AgentPosY)
+    <-  ?agent_INCL_explore::export_SearchRsltList(ImportedList);
+        -+agentPosition(AgentPosX, AgentPosY);
+        // ?step(X); ?position(AX,AY); //Debug: check ImportedList elements
+        // +debugBelief____________________Value("searchRsltList: ", ImportedList, "in Step: ", X, myPosition(AX,AY));
         -+listToBeProcessed(ImportedList);
         .nth(0, ImportedList, FirstElement);
         -+elementToBeChecked(FirstElement);
@@ -42,10 +55,13 @@ exploredListTaskboard([]).
 //+!processImportedList(goal)
 //+!processImportedList(taskboard)
 +!calculatePositionPOI(POI_X, POI_Y)
-    <-  ?position(AgentPosX, AgentPosY);
+    <-  ?agentPosition(AgentPosX, AgentPosY);
         X_PositionPOI = AgentPosX + POI_X;
         Y_PositionPOI = AgentPosY + POI_Y;
         !correctCoordinatesPOI(X_PositionPOI,Y_PositionPOI);
+        // ?step(X); ?correctedCoordinatesPOI(B0X,B0Y); //Debug
+        // +debugBelief____________________Value("in Step: ", X, myPosition(AgentPosX, AgentPosY), "Distance to B0: ",POI_X,POI_Y);
+        // +debugBelief____________________Value("in Step: ", X, myPosition(AgentPosX, AgentPosY), "b0 correctedPos: ",B0X,B0Y);
     .
 +!correctCoordinatesPOI(POI_X, POI_Y)
     <-  !correctPOI_X(POI_X);
@@ -54,7 +70,6 @@ exploredListTaskboard([]).
         -correctedPOI_Y(CorrectedPOI_Y);
         -+correctedCoordinatesPOI(CorrectedPOI_X, CorrectedPOI_Y);
     .
-
 +!correctPOI_X(POI_X): POI_X>=0 & POI_X<=49 <- +correctedPOI_X(POI_X);.
 +!correctPOI_X(POI_X): POI_X>49 <- +correctedPOI_X(POI_X-50);.
 +!correctPOI_X(POI_X): POI_X<0 <- +correctedPOI_X(POI_X+50);.
@@ -62,11 +77,14 @@ exploredListTaskboard([]).
 +!correctPOI_Y(POI_Y): POI_Y>=0 & POI_Y<=49 <- +correctedPOI_Y(POI_Y);.
 +!correctPOI_Y(POI_Y): POI_Y>49 <- +correctedPOI_Y(POI_Y-50);.
 +!correctPOI_Y(POI_Y): POI_Y<0 <- +correctedPOI_Y(POI_Y+50);.
+{end}
 
-+!startProcessing
-    <-  !setUp;
-        ?elementToBeChecked(Element);
-        !checkElementsType(Element);
-        ?elementType(ElementType);
-        !processImportedList(ElementType);
++!export_POIs
+    <-  ?priv_exploreAdapter::exploredListB0(TMP_List);
+        -+export_exploredListB0(TMP_List);
     .
++!processExploredPOIs(AgentPosX, AgentPosY)
+    : agent_INCL_explore::export_SearchRsltList(ImportedList) & ImportedList = []
+    <-  .print("Empty list. No need for update");.
+
+
