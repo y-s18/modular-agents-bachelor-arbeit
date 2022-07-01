@@ -13,7 +13,7 @@ exploredListTaskboard([]).
         !priv_exploreAdapter::checkElementsType(Element);
         ?priv_exploreAdapter::elementType(ElementType);
         !priv_exploreAdapter::processImportedList(ElementType);
-        !export_POIs;
+        !exportPOIs;
     .
 
 {begin namespace(priv_exploreAdapter, local)}
@@ -51,9 +51,43 @@ exploredListTaskboard([]).
             }
         }
     .
-//+!processImportedList(b1)
-//+!processImportedList(goal)
-//+!processImportedList(taskboard)
++!processImportedList(b1)
+    <-  ?listToBeProcessed(ListToProcess);
+        for( .member(thing(B1_X, B1_Y, dispenser, b1), ListToProcess)){
+            !calculatePositionPOI(B1_X,B1_Y);
+            ?correctedCoordinatesPOI(X_PositionB1,Y_PositionB1);
+            ?exploredListB1(ExploredListB1);
+            if( not .member(b1(X_PositionB1,Y_PositionB1), ExploredListB1) ){
+                .concat(ExploredListB1, [b1(X_PositionB1,Y_PositionB1)], TMP_List);
+                -+exploredListB1(TMP_List);
+            }
+        }
+    .
++!processImportedList(taskboard)
+    <-  ?listToBeProcessed(ListToProcess);
+        for( .member(thing(Taskboard_X, Taskboard_Y, taskboard,_), ListToProcess)){
+            !calculatePositionPOI(Taskboard_X,Taskboard_Y);
+            ?correctedCoordinatesPOI(X_PositionTaskboard,Y_PositionTaskboard);
+            ?exploredListTaskboard(ExploredListTaskboard);
+            if( not .member(taskboard(X_PositionTaskboard,Y_PositionTaskboard), ExploredListTaskboard) ){
+                .concat(ExploredListTaskboard, [taskboard(X_PositionTaskboard,Y_PositionTaskboard)], TMP_List);
+                -+exploredListTaskboard(TMP_List);
+            }
+        }
+    .
++!processImportedList(goal)
+    <-  ?listToBeProcessed(ListToProcess);
+        for( .member(goal(Goal_X, Goal_Y), ListToProcess)){
+            !calculatePositionPOI(Goal_X,Goal_Y);
+            ?correctedCoordinatesPOI(X_PositionGoal,Y_PositionGoal);
+            ?exploredListGoal(ExploredListGoal);
+            if( not .member(goal(X_PositionGoal,Y_PositionGoal), ExploredListGoal) ){
+                .concat(ExploredListGoal, [goal(X_PositionGoal,Y_PositionGoal)], TMP_List);
+                -+exploredListGoal(TMP_List);
+            }
+        }
+    .
+
 +!calculatePositionPOI(POI_X, POI_Y)
     <-  ?agentPosition(AgentPosX, AgentPosY);
         X_PositionPOI = AgentPosX + POI_X;
@@ -79,9 +113,15 @@ exploredListTaskboard([]).
 +!correctPOI_Y(POI_Y): POI_Y<0 <- +correctedPOI_Y(POI_Y+50);.
 {end}
 
-+!export_POIs
-    <-  ?priv_exploreAdapter::exploredListB0(TMP_List);
-        -+export_exploredListB0(TMP_List);
++!exportPOIs
+    <-  ?priv_exploreAdapter::exploredListB0(TMP_ListB0);
+        ?priv_exploreAdapter::exploredListB1(TMP_ListB1);
+        ?priv_exploreAdapter::exploredListGoal(TMP_ListGoal);
+        ?priv_exploreAdapter::exploredListTaskboard(TMP_ListTaskboard);
+        -+export_exploredListB0(TMP_ListB0);
+        -+export_exploredListB1(TMP_ListB1);
+        -+export_exploredListGoal(TMP_ListGoal);
+        -+export_exploredListTaskboard(TMP_ListTaskboard);
     .
 +!processExploredPOIs(AgentPosX, AgentPosY)
     : agent_INCL_explore::export_SearchRsltList(ImportedList) & ImportedList = []
