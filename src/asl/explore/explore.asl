@@ -1,3 +1,5 @@
+{ include("helperModules/coordinatesCorrector.asl", explore_INCL_coordinatesCorrector) }
+
 {begin namespace(priv_explore, local)}
 spiralStepRange(-1). //4
 stepRangeMultiplicator(1). //1
@@ -29,8 +31,10 @@ endpointCoordinates(-1,-1).
         ?priv_explore::spiralLineDirection(Direction);
         !priv_explore::calculateSpiralLineEndpoint(Direction);
         ?priv_explore::spiralLineEndpoint(X_Endpoint, Y_Endpoint);
-        !priv_explore::correctCoordinatesPOI(X_Endpoint, Y_Endpoint);
-        ?priv_explore::correctedCoordinatesPOI(CorrectedEndpointX, CorrectedEndpointY);
+        // .include("helperModules/coordinatesCorrector.asl", explore_INCL_coordinatesCorrector);
+        !explore_INCL_coordinatesCorrector::correctCoordinatesPOI(X_Endpoint, Y_Endpoint);
+        //TBD: change ? to -
+        ?explore_INCL_coordinatesCorrector::correctedCoordinatesPOI(CorrectedEndpointX, CorrectedEndpointY);
         -+priv_explore::endpointCoordinates(CorrectedEndpointX, CorrectedEndpointY);
         -+export_EndpointCoordinates(CorrectedEndpointX, CorrectedEndpointY);
     .
@@ -86,20 +90,4 @@ endpointCoordinates(-1,-1).
     <-  -+spiralLineEndpoint(AgentPosX-SpiralStepRange*StepRangeMultiplicator,
                              AgentPosY-SpiralStepRange*StepRangeMultiplicator);
     .
-
-//to be removed
-+!correctCoordinatesPOI(POI_X, POI_Y)
-    <-  !correctPOI_X(POI_X);
-        !correctPOI_Y(POI_Y);
-        -correctedPOI_X(CorrectedPOI_X);
-        -correctedPOI_Y(CorrectedPOI_Y);
-        -+correctedCoordinatesPOI(CorrectedPOI_X, CorrectedPOI_Y);
-    .
-+!correctPOI_X(POI_X): POI_X>=0 & POI_X<=49 <- +correctedPOI_X(POI_X);.
-+!correctPOI_X(POI_X): POI_X>49 <- +correctedPOI_X(POI_X-50);.
-+!correctPOI_X(POI_X): POI_X<0 <- +correctedPOI_X(POI_X+50);.
-
-+!correctPOI_Y(POI_Y): POI_Y>=0 & POI_Y<=49 <- +correctedPOI_Y(POI_Y);.
-+!correctPOI_Y(POI_Y): POI_Y>49 <- +correctedPOI_Y(POI_Y-50);.
-+!correctPOI_Y(POI_Y): POI_Y<0 <- +correctedPOI_Y(POI_Y+50);.
 {end}
