@@ -1,4 +1,4 @@
-{ include("movement.asl", movementAdapter_INCL_movement) }
+{ include("movement/movement.asl", movementAdapter_INCL_movement) }
 
 {begin namespace(priv_movementAdapter, local)}
 direction(s, 0,  1). 
@@ -16,14 +16,13 @@ rsltDirection(-1).
         ?priv_movementAdapter::rsltDirection(RsltDirection);
         -+export_RsltDirection(RsltDirection);
     .
-
 +!moveOneStepTowardsDestination(CurrPositionX, CurrPositionY, DestinationX, DestinationY)
 	: (CurrPositionX=DestinationX & CurrPositionY=DestinationY)
-	<- .print("---------------> ", arrived_at(DestinationX,DestinationY));.
-    
+	<-  .print("---------------> ", arrived_at(DestinationX,DestinationY));
+    .
 {begin namespace(priv_movementAdapter, local)}
 +!convertStepCoordinatesToDirection(RsltDestinationX, RsltDestinationY)
-    <- ?priv_movementAdapter::direction(RsltDirection, RsltDestinationX, RsltDestinationY);
+    <-  ?priv_movementAdapter::direction(RsltDirection, RsltDestinationX, RsltDestinationY);
         -+rsltDirection(RsltDirection);
     .
 {end}

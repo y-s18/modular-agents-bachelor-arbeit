@@ -49,8 +49,8 @@ rslt_StepCoordinates(-1,-1).
 	<-	!priv_movement::calculateStepCoordinates(CurrPositionX, CurrPositionY, DestinationX, DestinationY);
 		?priv_movement::rslt_StepCoordinates(RSLT_X,RSLT_Y);
 		-+export_RsltStepCoordinates(RSLT_X,RSLT_Y);
-		.
+	.
 +!moveOneStepTowardsDestination(CurrPositionX, CurrPositionY, DestinationX, DestinationY)
 	: (CurrPositionX=DestinationX & CurrPositionY=DestinationY)
-	<-	.print("---------------> ", arrived_at(DestinationX,DestinationY));.
-
+	<-	.print("---------------> ", arrived_at(DestinationX,DestinationY));
+	.
