@@ -1,4 +1,5 @@
 { include("helperModules/coordinatesCorrector.asl", exploreAdapter_INCL_coordinatesCorrector) }
+{ include("explore.asl", exploreAdapter_INCL_explore) }
 
 {begin namespace(priv_exploreAdapter, local)}
 exploredListB0([]).
@@ -7,19 +8,23 @@ exploredListGoal([]).
 exploredListTaskboard([]).
 {end}
 
-+!processExploredPOIs(AgentPosX, AgentPosY)
-    : agent_INCL_explore::export_SearchRsltList(ImportedList) & ImportedList \== []
-    <-  !priv_exploreAdapter::setUp(AgentPosX, AgentPosY);
-        ?priv_exploreAdapter::elementToBeChecked(Element);
-        !priv_exploreAdapter::checkElementsType(Element);
-        ?priv_exploreAdapter::elementType(ElementType);
-        !priv_exploreAdapter::processImportedList(ElementType);
++!searchFor(Something, AgentPosX, AgentPosY)
+    <-  !exploreAdapter_INCL_explore::searchFor(Something);
+        !priv_exploreAdapter::processExploredPOIs(AgentPosX, AgentPosY);
         !exportPOIs;
     .
 
 {begin namespace(priv_exploreAdapter, local)}
-+!setUp(AgentPosX, AgentPosY)
-    <-  ?agent_INCL_explore::export_SearchRsltList(ImportedList);
++!processExploredPOIs(AgentPosX, AgentPosY)
+    : exploreAdapter_INCL_explore::export_SearchRsltList(ImportedList) & ImportedList \== []
+    <-  !updateBeliefsForProcessing(AgentPosX, AgentPosY);
+        ?elementToBeChecked(Element);
+        !checkElementsType(Element);
+        ?elementType(ElementType);
+        !processImportedList(ElementType);
+    .
++!updateBeliefsForProcessing(AgentPosX, AgentPosY)
+    <-  ?exploreAdapter_INCL_explore::export_SearchRsltList(ImportedList);
         -+agentPosition(AgentPosX, AgentPosY);
         // ?step(X); ?position(AX,AY); //Debug: check ImportedList elements
         // +debugBelief____________________Value("searchRsltList: ", ImportedList, "in Step: ", X, myPosition(AX,AY));
@@ -92,7 +97,6 @@ exploredListTaskboard([]).
             }
         }
     .
-
 +!calculatePositionPOI(POI_X, POI_Y)
     <-  ?agentPosition(AgentPosX, AgentPosY);
         X_PositionPOI = AgentPosX + POI_X;
@@ -114,8 +118,10 @@ exploredListTaskboard([]).
         -+export_exploredListGoal(TMP_ListGoal);
         -+export_exploredListTaskboard(TMP_ListTaskboard);
     .
-+!processExploredPOIs(AgentPosX, AgentPosY)
-    : agent_INCL_explore::export_SearchRsltList(ImportedList) & ImportedList = []
-    <-  .print("Empty list. No need for update");.
 
+{begin namespace(priv_exploreAdapter, local)}
++!processExploredPOIs(AgentPosX, AgentPosY)
+    : exploreAdapter_INCL_explore::export_SearchRsltList(ImportedList) & ImportedList = []
+    <-  .print("Empty list. No need for update");.
+{end}
 
