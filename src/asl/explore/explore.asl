@@ -18,9 +18,7 @@ endpointCoordinates(-1,-1).
 {begin namespace(priv_explore, local)}
 +!updateSearchRsltList(SmthList)
     : SmthList = []
-    <-  -+searchRsltList([]);
-        .print("No Updates"); 
-    .
+    <-  -+searchRsltList([]);.
 +!updateSearchRsltList(SmthList)
     : SmthList \== []
     <-  -+searchRsltList(SmthList);.
@@ -48,7 +46,6 @@ endpointCoordinates(-1,-1).
         -+agentPosition(AgentPosX, AgentPosY);
         if(StepRangeMultiplicator>MultiplicatorMaximum){ -+stepRangeMultiplicator(1);}
     .
-
 +!setUp(AgentPosX, AgentPosY, SpiralStepRange, MultiplicatorMaximum)
     : stepRangeMultiplicator(StepRangeMultiplicator) & endpointCoordinates(X_Endpoint, Y_Endpoint)
     & (AgentPosX=X_Endpoint & AgentPosY=Y_Endpoint)
@@ -58,7 +55,6 @@ endpointCoordinates(-1,-1).
         if(StepRangeMultiplicator>MultiplicatorMaximum){ -+stepRangeMultiplicator(1);}
         !updateNextLineDirection;
     .
-
 +!updateNextLineDirection
     : spiralLineDirection(ne) <- -+spiralLineDirection(se);.
 +!updateNextLineDirection
@@ -68,25 +64,46 @@ endpointCoordinates(-1,-1).
 +!updateNextLineDirection
     : spiralLineDirection(nw) <- -+spiralLineDirection(ne);.
 
++!calculateSpiralLineEndpoint(_)
+    : agentPosition(AgentPosX, AgentPosY) & spiralStepRange(SpiralStepRange) 
+    & stepRangeMultiplicator(StepRangeMultiplicator) & endpointCoordinates(X_Endpoint,Y_Endpoint) 
+    & (X_Endpoint \== -1 & Y_Endpoint \== -1) & not (AgentPosX=X_Endpoint & AgentPosY=Y_Endpoint)
+    <-  .print("Agent did not reach the previous endpoint! No endpoint update!");
+    .
++!calculateSpiralLineEndpoint(ne) //for first time call.
+    : agentPosition(AgentPosX, AgentPosY) & spiralStepRange(SpiralStepRange) 
+    & stepRangeMultiplicator(StepRangeMultiplicator) & endpointCoordinates(-1,-1) 
+    <-  -+spiralLineEndpoint(AgentPosX+SpiralStepRange*StepRangeMultiplicator,
+                             AgentPosY-SpiralStepRange*StepRangeMultiplicator);
+        -+stepRangeMultiplicator(StepRangeMultiplicator+1);
+    .
 +!calculateSpiralLineEndpoint(ne)
-    : agentPosition(AgentPosX, AgentPosY) & spiralStepRange(SpiralStepRange) & stepRangeMultiplicator(StepRangeMultiplicator)
+    : agentPosition(AgentPosX, AgentPosY) & spiralStepRange(SpiralStepRange) 
+    & stepRangeMultiplicator(StepRangeMultiplicator) & endpointCoordinates(X_Endpoint,Y_Endpoint) 
+    & (AgentPosX=X_Endpoint & AgentPosY=Y_Endpoint)
     <-  -+spiralLineEndpoint(AgentPosX+SpiralStepRange*StepRangeMultiplicator,
                              AgentPosY-SpiralStepRange*StepRangeMultiplicator);
         -+stepRangeMultiplicator(StepRangeMultiplicator+1);
     .
 +!calculateSpiralLineEndpoint(se)
-    : agentPosition(AgentPosX, AgentPosY) & spiralStepRange(SpiralStepRange) & stepRangeMultiplicator(StepRangeMultiplicator)
+    : agentPosition(AgentPosX, AgentPosY) & spiralStepRange(SpiralStepRange) 
+    & stepRangeMultiplicator(StepRangeMultiplicator) & endpointCoordinates(X_Endpoint,Y_Endpoint) 
+    & (AgentPosX=X_Endpoint & AgentPosY=Y_Endpoint)
     <-  -+spiralLineEndpoint(AgentPosX+SpiralStepRange*StepRangeMultiplicator,
                              AgentPosY+SpiralStepRange*StepRangeMultiplicator);
     .
 +!calculateSpiralLineEndpoint(sw)
-    : agentPosition(AgentPosX, AgentPosY) & spiralStepRange(SpiralStepRange) & stepRangeMultiplicator(StepRangeMultiplicator)
+    : agentPosition(AgentPosX, AgentPosY) & spiralStepRange(SpiralStepRange) 
+    & stepRangeMultiplicator(StepRangeMultiplicator) & endpointCoordinates(X_Endpoint,Y_Endpoint) 
+    & (AgentPosX=X_Endpoint & AgentPosY=Y_Endpoint)    
     <-  -+spiralLineEndpoint(AgentPosX-SpiralStepRange*StepRangeMultiplicator,
                              AgentPosY+SpiralStepRange*StepRangeMultiplicator);
         -+stepRangeMultiplicator(StepRangeMultiplicator+1);
     .
 +!calculateSpiralLineEndpoint(nw)
-    : agentPosition(AgentPosX, AgentPosY) & spiralStepRange(SpiralStepRange) & stepRangeMultiplicator(StepRangeMultiplicator)
+    : agentPosition(AgentPosX, AgentPosY) & spiralStepRange(SpiralStepRange) 
+    & stepRangeMultiplicator(StepRangeMultiplicator) & endpointCoordinates(X_Endpoint,Y_Endpoint) 
+    & (AgentPosX=X_Endpoint & AgentPosY=Y_Endpoint)
     <-  -+spiralLineEndpoint(AgentPosX-SpiralStepRange*StepRangeMultiplicator,
                              AgentPosY-SpiralStepRange*StepRangeMultiplicator);
     .
