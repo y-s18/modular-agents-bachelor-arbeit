@@ -1,5 +1,4 @@
 
-/* Initial beliefs and rules */
 {begin namespace(priv_movement, local)}
 init_MapSize(50, 50). //50x50
 currPositionX(-1).
@@ -7,13 +6,31 @@ currPositionY(-1).
 destinationX(-1).
 destinationY(-1).
 rslt_StepCoordinates(-1,-1).
+{end}
 
-/* Plans */
-+!calculateStepCoordinates(CurrPositionX, CurrPositionY, DestinationX, DestinationY)
-	<- 	DistanceXAxis=math.abs(DestinationX-CurrPositionX);
-		DistanceYAxis=math.abs(DestinationY-CurrPositionY);
-		-+currPositionX(CurrPositionX); -+currPositionY(CurrPositionY);
++!moveOneStepTowardsDestination(CurrPositionX, CurrPositionY, DestinationX, DestinationY)
+	: not (CurrPositionX=DestinationX & CurrPositionY=DestinationY)
+	<-	!priv_movement::updateBeliefsForCalculation(CurrPositionX, CurrPositionY, DestinationX, DestinationY);
+		!priv_movement::calculateStepCoordinates;
+		?priv_movement::rslt_StepCoordinates(RSLT_X,RSLT_Y);
+		-+export_RsltStepCoordinates(RSLT_X,RSLT_Y);
+	.
++!moveOneStepTowardsDestination(CurrPositionX, CurrPositionY, DestinationX, DestinationY)
+	: (CurrPositionX=DestinationX & CurrPositionY=DestinationY)
+	<-	!priv_movement::updateBeliefsForCalculation(CurrPositionX, CurrPositionY, DestinationX, DestinationY);
+		.print("---------------> ", arrived_at(DestinationX,DestinationY));
+	.
+
+{begin namespace(priv_movement, local)}
++!updateBeliefsForCalculation(CurrPositionX, CurrPositionY, DestinationX, DestinationY)
+	<-	-+currPositionX(CurrPositionX); -+currPositionY(CurrPositionY);
 		-+destinationX(DestinationX); -+destinationY(DestinationY);
+	.
++!calculateStepCoordinates
+	<- 	?currPositionX(CurrPositionX); ?currPositionY(CurrPositionY);
+		?destinationX(DestinationX); ?destinationY(DestinationY);
+		DistanceXAxis=math.abs(DestinationX-CurrPositionX);
+		DistanceYAxis=math.abs(DestinationY-CurrPositionY);
 		!chooseStepAxis(DistanceXAxis, DistanceYAxis);
 	.
 +!chooseStepAxis(DistanceXAxis, DistanceYAxis)
@@ -43,14 +60,3 @@ rslt_StepCoordinates(-1,-1).
 	<-	-+rslt_StepCoordinates(0, (DestinationY-CurrPositionY)/DistanceYAxis)
 	.
 {end}
-
-+!moveOneStepTowardsDestination(CurrPositionX, CurrPositionY, DestinationX, DestinationY)
-	: not (CurrPositionX=DestinationX & CurrPositionY=DestinationY)
-	<-	!priv_movement::calculateStepCoordinates(CurrPositionX, CurrPositionY, DestinationX, DestinationY);
-		?priv_movement::rslt_StepCoordinates(RSLT_X,RSLT_Y);
-		-+export_RsltStepCoordinates(RSLT_X,RSLT_Y);
-	.
-+!moveOneStepTowardsDestination(CurrPositionX, CurrPositionY, DestinationX, DestinationY)
-	: (CurrPositionX=DestinationX & CurrPositionY=DestinationY)
-	<-	.print("---------------> ", arrived_at(DestinationX,DestinationY));
-	.
