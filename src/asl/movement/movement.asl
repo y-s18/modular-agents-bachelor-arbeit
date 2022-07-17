@@ -60,3 +60,21 @@ rslt_StepCoordinates(-1,-1).
 	<-	-+rslt_StepCoordinates(0, (DestinationY-CurrPositionY)/DistanceYAxis)
 	.
 {end}
+
++!moveOneRandomStep
+	<-	.random([1,2,3,4], RandomNum);
+		!priv_movement::chooseRandomStepDirection(RandomNum);
+		?priv_movement::rslt_StepCoordinates(RSLT_X,RSLT_Y);
+		-+export_RsltStepCoordinates(RSLT_X,RSLT_Y);
+	.
+
+{begin namespace(priv_movement, local)}
++!chooseRandomStepDirection(1)
+	<-	-+rslt_StepCoordinates(0, 1).
++!chooseRandomStepDirection(2)
+	<-	-+rslt_StepCoordinates(0, -1).
++!chooseRandomStepDirection(3)
+	<-	-+rslt_StepCoordinates(-1, 0).
++!chooseRandomStepDirection(4)
+	<-	-+rslt_StepCoordinates(1, 0).
+{end}
