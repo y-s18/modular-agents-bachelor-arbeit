@@ -8,6 +8,11 @@ exploredListGoal([]).
 exploredListTaskboard([]).
 {end}
 
++!calculateNextSpiralLine(AgentPosX, AgentPosY, SpiralStepRange, MultiplicatorMaximum)
+    <-  !exploreAdapter_INCL_explore::calculateNextSpiralLine(AgentPosX, AgentPosY, SpiralStepRange, MultiplicatorMaximum);
+        ?exploreAdapter_INCL_explore::export_EndpointCoordinates(CorrectedEndpointX, CorrectedEndpointY);
+        -+export_EndpointCoordinates(CorrectedEndpointX, CorrectedEndpointY);
+    .
 +!searchFor(Something, AgentPosX, AgentPosY)
     <-  !exploreAdapter_INCL_explore::searchFor(Something);
         !priv_exploreAdapter::processExploredPOIs(AgentPosX, AgentPosY);
