@@ -4,7 +4,7 @@ MAS bachelorArbeit_Modules {
 	environment: jason.eis.EISAdapter
 	agents:
 //		explore;
-		agent [verbose=2];
+		agent;
 //		agent [verbose=1, mindinspector="gui(100,html)"];
 //		agent [verbose=1, mindinspector="gui(cycle,html)"];
 //		agent [verbose=1, mindinspector="gui(100,html)"];
