@@ -6,6 +6,7 @@ exploredListB0([]).
 exploredListB1([]).
 exploredListGoal([]).
 exploredListTaskboard([]).
+activatePlan(false).
 {end}
 
 +!calculateNextSpiralLine(AgentPosX, AgentPosY, SpiralStepRange, MultiplicatorMaximum)
@@ -16,7 +17,9 @@ exploredListTaskboard([]).
 +!searchFor(Something, AgentPosX, AgentPosY)
     <-  !exploreAdapter_INCL_explore::searchFor(Something);
         !priv_exploreAdapter::processExploredPOIs(AgentPosX, AgentPosY);
+        -+priv_exploreAdapter::activatePlan(true);
         !exportPOIs;
+        -+priv_exploreAdapter::activatePlan(false);
     .
 
 {begin namespace(priv_exploreAdapter, local)}
@@ -114,6 +117,7 @@ exploredListTaskboard([]).
 {end}
 
 +!exportPOIs
+    : priv_exploreAdapter::activatePlan(true)
     <-  ?priv_exploreAdapter::exploredListB0(TMP_ListB0);
         ?priv_exploreAdapter::exploredListB1(TMP_ListB1);
         ?priv_exploreAdapter::exploredListGoal(TMP_ListGoal);
@@ -123,6 +127,8 @@ exploredListTaskboard([]).
         -+export_exploredListGoal(TMP_ListGoal);
         -+export_exploredListTaskboard(TMP_ListTaskboard);
     .
+-!exportPOIs
+    <-  .print("\n############\nPLAN FAILED: !exportPOIs can not be called from outside the module\n############\n");.
 
 {begin namespace(priv_exploreAdapter, local)}
 +!processExploredPOIs(AgentPosX, AgentPosY)
