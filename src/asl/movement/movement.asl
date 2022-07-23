@@ -35,29 +35,31 @@ rslt_StepCoordinates(-1,-1).
 	.
 +!chooseStepAxis(DistanceXAxis, DistanceYAxis)
 	: DistanceXAxis >= DistanceYAxis
-	<-	?currPositionX(CurrPositionX); ?destinationX(DestinationX);
-		!chooseStepDirectionOnXAxis(DistanceXAxis, CurrPositionX, DestinationX);
+	<-	!chooseStepDirectionOnXAxis(DistanceXAxis);
 	.
-+!chooseStepDirectionOnXAxis(DistanceXAxis, CurrPositionX, DestinationX)
++!chooseStepDirectionOnXAxis(DistanceXAxis)
 	: init_MapSize(TMP_X,_) & (DistanceXAxis > (TMP_X/2)-1)
-	<-	-+rslt_StepCoordinates(-(DestinationX-CurrPositionX)/DistanceXAxis , 0)
+	<-	?currPositionX(CurrPositionX); ?destinationX(DestinationX);
+		-+rslt_StepCoordinates(-(DestinationX-CurrPositionX)/DistanceXAxis , 0)
 	.
-+!chooseStepDirectionOnXAxis(DistanceXAxis, CurrPositionX, DestinationX)
++!chooseStepDirectionOnXAxis(DistanceXAxis)
 	: init_MapSize(TMP_X,_) & (DistanceXAxis <= (TMP_X/2)-1)
-	<-	-+rslt_StepCoordinates((DestinationX-CurrPositionX)/DistanceXAxis ,0)
+	<-	?currPositionX(CurrPositionX); ?destinationX(DestinationX);
+		-+rslt_StepCoordinates((DestinationX-CurrPositionX)/DistanceXAxis ,0)
 	.
 +!chooseStepAxis(DistanceXAxis, DistanceYAxis)
 	: DistanceXAxis < DistanceYAxis
-	<-	?currPositionY(CurrPositionY); ?destinationY(DestinationY);
-		!chooseStepDirectionOnYAxis(DistanceYAxis, CurrPositionY, DestinationY);
+	<-	!chooseStepDirectionOnYAxis(DistanceYAxis);
 	.
-+!chooseStepDirectionOnYAxis(DistanceYAxis, CurrPositionY, DestinationY)
++!chooseStepDirectionOnYAxis(DistanceYAxis)
 	: init_MapSize(_,TMP_Y) & (DistanceYAxis > (TMP_Y/2)-1)
-	<-	-+rslt_StepCoordinates(0, -(DestinationY-CurrPositionY)/DistanceYAxis)
+	<-	?currPositionY(CurrPositionY); ?destinationY(DestinationY);
+		-+rslt_StepCoordinates(0, -(DestinationY-CurrPositionY)/DistanceYAxis)
 	.
-+!chooseStepDirectionOnYAxis(DistanceYAxis, CurrPositionY, DestinationY)
++!chooseStepDirectionOnYAxis(DistanceYAxis)
 	: init_MapSize(_,TMP_Y) & (DistanceYAxis <= (TMP_Y/2)-1)
-	<-	-+rslt_StepCoordinates(0, (DestinationY-CurrPositionY)/DistanceYAxis)
+	<-	?currPositionY(CurrPositionY); ?destinationY(DestinationY);
+		-+rslt_StepCoordinates(0, (DestinationY-CurrPositionY)/DistanceYAxis)
 	.
 {end}
 
