@@ -1,4 +1,4 @@
-{ include("movement/movement.asl", movementAdapter_INCL_movement) }
+{ include("movement/movement.asl", movementAdapter_movement) }
 
 {begin namespace(priv_movementAdapter, local)}
 direction(s, 0,  1). 
@@ -9,15 +9,15 @@ rsltDirection(-1).
 {end}
 
 +!moveOneStepTowardsDestination(CurrPositionX, CurrPositionY, DestinationX, DestinationY)
-    <-  !movementAdapter_INCL_movement::moveOneStepTowardsDestination(CurrPositionX, CurrPositionY, DestinationX, DestinationY);
-        ?movementAdapter_INCL_movement::export_RsltStepCoordinates(RSLT_X,RSLT_Y);
+    <-  !movementAdapter_movement::moveOneStepTowardsDestination(CurrPositionX, CurrPositionY, DestinationX, DestinationY);
+        ?movementAdapter_movement::export_RsltStepCoordinates(RSLT_X,RSLT_Y);
         !priv_movementAdapter::convertStepCoordinatesToDirection(RSLT_X,RSLT_Y);
         ?priv_movementAdapter::rsltDirection(RsltDirection);
         -+export_RsltDirection(RsltDirection);
     .
 +!moveOneRandomStep
-    <-  !movementAdapter_INCL_movement::moveOneRandomStep;
-        ?movementAdapter_INCL_movement::export_RsltStepCoordinates(RSLT_X,RSLT_Y);
+    <-  !movementAdapter_movement::moveOneRandomStep;
+        ?movementAdapter_movement::export_RsltStepCoordinates(RSLT_X,RSLT_Y);
         !priv_movementAdapter::convertStepCoordinatesToDirection(RSLT_X,RSLT_Y);
         ?priv_movementAdapter::rsltDirection(RsltDirection);
         -+export_RsltDirection(RsltDirection);
