@@ -36,7 +36,6 @@ agentState(state, false).
     <-  -+priv_doTask::agentPosition(AgentPosX, AgentPosY);
         !checkForTaskboard;
         -+priv_doTask::checkingTB(false);
-        // -+priv_doTask::movingToTB(true);
         -+priv_doTask::movingToPOI(taskboard, true);
         !doTask(AgentPosX,AgentPosY);
     .
@@ -69,17 +68,13 @@ agentState(state, false).
     // & (math.abs((AgentPosX+AgentPosY)-(CurrTB_X+CurrTB_Y))<=2)
     & distanceRule2(AgentPosX,AgentPosY,CurrTB_X,CurrTB_Y)
     <-  -+priv_doTask::agentPosition(AgentPosX, AgentPosY);
-        // -+priv_doTask::movingToTB(false);
         -+priv_doTask::movingToPOI(taskboard, false);
-        // -+priv_doTask::accepting(true);
         -+priv_doTask::agentState(accepting, true);
-        // !beliefBase_doTask::acceptTask;
         !doTask(AgentPosX,AgentPosY);
     .
 +!doTask(AgentPosX, AgentPosY)
     : priv_doTask::agentState(accepting, true)
     <-  -+priv_doTask::agentPosition(AgentPosX, AgentPosY);
-        // -+priv_doTask::accepting(false);
         -+priv_doTask::agentState(accepting, false);
         -+priv_doTask::executedAction(accept,true);
         !beliefBase_doTask::acceptTask;
@@ -97,7 +92,6 @@ agentState(state, false).
     & priv_doTask::executedAction(accept,true)
     <-  -+priv_doTask::agentPosition(AgentPosX, AgentPosY);
         -+priv_doTask::executedAction(accept,false);
-        // -+priv_doTask::accepting(true);
         -+priv_doTask::agentState(accepting, true);
         !doTask(AgentPosX, AgentPosY);
     .
@@ -109,7 +103,6 @@ agentState(state, false).
         !doTask_POIsComparison::findClosestPOI(AgentPosX, AgentPosY, CurrB0_X, CurrB0_Y, List, b0);
         ?doTask_POIsComparison::export_CurrPOI(CurrPOI_X, CurrPOI_Y);
         -+priv_doTask::currB0(CurrPOI_X, CurrPOI_Y);
-        // -+priv_doTask::movingToDisp(true);
         -+priv_doTask::movingToPOI(dispenser, true);
     .
 +!checkForDispenser
@@ -140,7 +133,6 @@ agentState(state, false).
         !doTask_POIsComparison::findClosestPOI(AgentPosX, AgentPosY, CurrB1_X, CurrB1_Y, List, b1);
         ?doTask_POIsComparison::export_CurrPOI(CurrPOI_X, CurrPOI_Y);
         -+priv_doTask::currB1(CurrPOI_X, CurrPOI_Y);
-        // -+priv_doTask::movingToDisp(true);
         -+priv_doTask::movingToPOI(dispenser, true);
     .
 +!checkForDispenser
@@ -193,9 +185,7 @@ agentState(state, false).
     : priv_doTask::movingToPOI(dispenser, true) & beliefBase_doTask::currRequiredDisp(b0,BlockFormX,BlockFormY)
     & priv_doTask::currB0(CurrB0_X, CurrB0_Y) & (AgentPosX=CurrB0_X-BlockFormX & AgentPosY=CurrB0_Y-BlockFormY)
     <-  -+priv_doTask::agentPosition(AgentPosX, AgentPosY);
-        // -+priv_doTask::movingToDisp(false);
         -+priv_doTask::movingToPOI(dispenser, false);
-        // -+priv_doTask::requesting(true);
         -+priv_doTask::agentState(requesting, true);
         !doTask(AgentPosX, AgentPosY);
         //3. calculation for the taskboard/range from TB
@@ -204,16 +194,13 @@ agentState(state, false).
     : priv_doTask::movingToPOI(dispenser, true) & beliefBase_doTask::currRequiredDisp(b1,BlockFormX,BlockFormY)
     & priv_doTask::currB1(CurrB1_X, CurrB1_Y) & (AgentPosX=CurrB1_X-BlockFormX & AgentPosY=CurrB1_Y-BlockFormY)
     <-  -+priv_doTask::agentPosition(AgentPosX, AgentPosY);
-        // -+priv_doTask::movingToDisp(false);
         -+priv_doTask::movingToPOI(dispenser, false);
-        // -+priv_doTask::requesting(true);
         -+priv_doTask::agentState(requesting, true);
         !doTask(AgentPosX, AgentPosY);
     .
 +!doTask(AgentPosX, AgentPosY)
     : priv_doTask::agentState(requesting, true)
     <-  -+priv_doTask::agentPosition(AgentPosX, AgentPosY);
-        // -+priv_doTask::requesting(false);
         -+priv_doTask::agentState(requesting, false);
         -+priv_doTask::executedAction(request,true);
         !beliefBase_doTask::requestBlock(BlockFormX,BlockFormY);
@@ -223,7 +210,6 @@ agentState(state, false).
     & priv_doTask::executedAction(request,true)
     <-  -+priv_doTask::agentPosition(AgentPosX, AgentPosY);
         -+priv_doTask::executedAction(request,false);
-        // -+priv_doTask::attaching(true);
         -+priv_doTask::agentState(attaching, true);
         !doTask(AgentPosX, AgentPosY);
     .
@@ -231,7 +217,6 @@ agentState(state, false).
 +!doTask(AgentPosX, AgentPosY)
     : priv_doTask::agentState(attaching, true)
     <-  -+priv_doTask::agentPosition(AgentPosX, AgentPosY);
-        // -+priv_doTask::attaching(false);
         -+priv_doTask::agentState(attaching, false);
         -+priv_doTask::executedAction(attach,true);
         !beliefBase_doTask::attachToBlock;
@@ -252,7 +237,6 @@ agentState(state, false).
         !doTask_POIsComparison::findClosestPOI(AgentPosX,AgentPosY,CurrGoal_X,CurrGoal_Y,List,gl);
         ?doTask_POIsComparison::export_CurrPOI(CurrPOI_X,CurrPOI_Y);
         -+priv_doTask::currGoal(CurrPOI_X,CurrPOI_Y);
-        // -+priv_doTask::movingToGoal(true);
         -+priv_doTask::movingToPOI(goal, true);
     .
 +!checkForGoal
@@ -287,16 +271,13 @@ agentState(state, false).
     : priv_doTask::movingToPOI(goal, true) & priv_doTask::currGoal(CurrGoal_X, CurrGoal_Y)
     & (AgentPosX=CurrGoal_X & AgentPosY=CurrGoal_Y)
     <-  -+priv_doTask::agentPosition(AgentPosX, AgentPosY);
-        // -+priv_doTask::movingToGoal(false);
         -+priv_doTask::movingToPOI(goal, false);
-        // -+priv_doTask::submitting(true);
         -+priv_doTask::agentState(submitting, true);
         !doTask(AgentPosX,AgentPosY);
     .
 +!doTask(AgentPosX, AgentPosY)
     : priv_doTask::agentState(submitting, true)
     <-  -+priv_doTask::agentPosition(AgentPosX,AgentPosY);
-        // -+priv_doTask::submitting(false);
         -+priv_doTask::agentState(submitting, false);
         ?beliefBase_doTask::acceptedTaskInfo(Task,_,_);
         !beliefBase_doTask::submitTask(Task);
