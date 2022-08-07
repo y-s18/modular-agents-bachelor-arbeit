@@ -12,6 +12,7 @@ bin/*
 lib/logs/*
 lib/replays/*
 lib/results/*
+lib/conf/*
 
 src/asl/experiments.asl
-src/asl/agent.asl
+
