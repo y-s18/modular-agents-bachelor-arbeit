@@ -21,6 +21,22 @@ activatePlan(false).
         !exportPOIs;
         -+priv_exploreAdapter::activatePlan(false);
     .
++!updateExploredList(b0, UpdatedList)
+    <-  -+priv_exploreAdapter::exploredListB0(UpdatedList);
+        -+export_exploredListB0(UpdatedList);
+    .
++!updateExploredList(b1, UpdatedList)
+    <-  -+priv_exploreAdapter::exploredListB1(UpdatedList);
+        -+export_exploredListB1(UpdatedList);
+    .
++!updateExploredList(gl, UpdatedList)
+    <-  -+priv_exploreAdapter::exploredListGoal(UpdatedList);
+        -+export_exploredListGoal(UpdatedList);
+    .
++!updateExploredList(tb, UpdatedList)
+    <-  -+priv_exploreAdapter::exploredListTaskboard(UpdatedList);
+        -+export_exploredListTaskboard(UpdatedList);
+    .
 
 {begin namespace(priv_exploreAdapter, local)}
 +!processExploredPOIs(AgentPosX, AgentPosY)
