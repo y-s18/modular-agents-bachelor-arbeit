@@ -51,11 +51,10 @@ agentState(checkingTaskboard, true). // state={checkingTaskboard, accepting, req
     <-  -+priv_doTask::agentPosition(AgentPosX, AgentPosY);
         !doTask_exploreFacade::searchForPOIs(AgentPosX, AgentPosY);
         !checkForTaskboard(AgentPosX, AgentPosY);
-        !moveToTaskboard;
+        !moveToTaskboard(AgentPosX, AgentPosY);
     .
-+!moveToTaskboard
-    <-  ?priv_doTask::agentPosition(AgentPosX, AgentPosY);
-        ?priv_doTask::currTaskboard(CurrTB_X, CurrTB_Y);
++!moveToTaskboard(AgentPosX, AgentPosY)
+    <-  ?priv_doTask::currTaskboard(CurrTB_X, CurrTB_Y);
         !doTask_movementFacade::moveToLocation(AgentPosX,AgentPosY,CurrTB_X,CurrTB_Y);
     .
 +!doTask(AgentPosX, AgentPosY)
@@ -150,12 +149,11 @@ agentState(checkingTaskboard, true). // state={checkingTaskboard, accepting, req
     & priv_doTask::currB0(CurrB0_X, CurrB0_Y) & not (AgentPosX=CurrB0_X-BlockFormX & AgentPosY=CurrB0_Y-BlockFormY)
     <-  -+priv_doTask::agentPosition(AgentPosX, AgentPosY);
         !doTask_exploreFacade::searchForPOIs(AgentPosX, AgentPosY);
-        !moveToDisp;
+        !moveToDisp(AgentPosX, AgentPosY);
     .
-+!moveToDisp
++!moveToDisp(AgentPosX, AgentPosY)
     : beliefBase_doTask::currRequiredDisp(b0,BlockFormX,BlockFormY)
-    <-  ?priv_doTask::agentPosition(AgentPosX, AgentPosY);
-        ?priv_doTask::currB0(CurrB0_X, CurrB0_Y);
+    <-  ?priv_doTask::currB0(CurrB0_X, CurrB0_Y);
         !doTask_movementFacade::moveToLocation(AgentPosX,AgentPosY, CurrB0_X-BlockFormX, CurrB0_Y-BlockFormY);
     .
 +!doTask(AgentPosX, AgentPosY)
@@ -163,12 +161,11 @@ agentState(checkingTaskboard, true). // state={checkingTaskboard, accepting, req
     & priv_doTask::currB1(CurrB1_X, CurrB1_Y) & not (AgentPosX=CurrB1_X-BlockFormX & AgentPosY=CurrB1_Y-BlockFormY)
     <-  -+priv_doTask::agentPosition(AgentPosX, AgentPosY);
         !doTask_exploreFacade::searchForPOIs(AgentPosX, AgentPosY);
-        !moveToDisp;
+        !moveToDisp(AgentPosX, AgentPosY);
     .
-+!moveToDisp
++!moveToDisp(AgentPosX, AgentPosY)
     : beliefBase_doTask::currRequiredDisp(b1,BlockFormX,BlockFormY)
-    <-  ?priv_doTask::agentPosition(AgentPosX, AgentPosY);
-        ?priv_doTask::currB1(CurrB1_X, CurrB1_Y);
+    <-  ?priv_doTask::currB1(CurrB1_X, CurrB1_Y);
         !doTask_movementFacade::moveToLocation(AgentPosX,AgentPosY, CurrB1_X-BlockFormX, CurrB1_Y-BlockFormY);
     .
 +!doTask(AgentPosX, AgentPosY)
@@ -202,7 +199,6 @@ agentState(checkingTaskboard, true). // state={checkingTaskboard, accepting, req
         -+priv_doTask::agentState(attaching, true);
         !doTask(AgentPosX, AgentPosY);
     .
-//request failed plan
 +!doTask(AgentPosX, AgentPosY)
     : priv_doTask::executedAction(request,true) & (default::lastAction(request) 
     & (default::lastActionResult(failed_parameter) | default::lastActionResult(failed_target))) 
@@ -232,6 +228,7 @@ agentState(checkingTaskboard, true). // state={checkingTaskboard, accepting, req
             -+priv_doTask::currB1(999,999);
         }
     .
+//another scenario: if agent attached to a block & tries to request a new block(attached block on Disp) -> failed_blocked
 +!doTask(AgentPosX, AgentPosY)
     : priv_doTask::executedAction(request,true)
     & (default::lastAction(request) & default::lastActionResult(failed_blocked))
@@ -248,8 +245,26 @@ agentState(checkingTaskboard, true). // state={checkingTaskboard, accepting, req
         !beliefBase_doTask::attachToBlock;
     .
 +!doTask(AgentPosX, AgentPosY)
-    : (default::lastAction(attach) & default::lastActionResult(success))
-    & priv_doTask::executedAction(attach,true)
+    : priv_doTask::executedAction(attach,true) & (default::lastAction(attach) 
+    & (default::lastActionResult(failed_parameter) | default::lastActionResult(failed_target)))
+    //failed_parameter should not occur based on our implementation
+    <-  -+priv_doTask::agentPosition(AgentPosX, AgentPosY);
+        -+priv_doTask::executedAction(attach,false);
+        -+priv_doTask::agentState(requesting,true);
+        !doTask(AgentPosX, AgentPosY);
+    .
+//attach failed failure code scenario to be optimized
++!doTask(AgentPosX, AgentPosY)
+    : priv_doTask::executedAction(attach,true) & (default::lastAction(attach) 
+    & default::lastActionResult(failed))
+    <-  -+priv_doTask::agentPosition(AgentPosX, AgentPosY);
+        -+priv_doTask::executedAction(attach,false);
+        -+priv_doTask::agentState(requesting,true);
+        !doTask(AgentPosX, AgentPosY);
+    .
++!doTask(AgentPosX, AgentPosY)
+    : priv_doTask::executedAction(attach,true)
+    & (default::lastAction(attach) & default::lastActionResult(success))
     <-  -+priv_doTask::agentPosition(AgentPosX, AgentPosY);
         -+priv_doTask::executedAction(attach,false);
         !checkForGoal(AgentPosX, AgentPosY);
@@ -284,11 +299,10 @@ agentState(checkingTaskboard, true). // state={checkingTaskboard, accepting, req
     & not (AgentPosX=CurrGoal_X & AgentPosY=CurrGoal_Y)
     <-  -+priv_doTask::agentPosition(AgentPosX, AgentPosY);
         !doTask_exploreFacade::searchForPOIs(AgentPosX, AgentPosY);
-        !moveToGoal;
+        !moveToGoal(AgentPosX, AgentPosY);
     .
-+!moveToGoal
-    <-  ?priv_doTask::agentPosition(AgentPosX, AgentPosY);
-        ?priv_doTask::currGoal(CurrGoal_X, CurrGoal_Y);
++!moveToGoal(AgentPosX, AgentPosY)
+    <-  ?priv_doTask::currGoal(CurrGoal_X, CurrGoal_Y);
         !doTask_movementFacade::moveToLocation(AgentPosX,AgentPosY, CurrGoal_X, CurrGoal_Y);
     .
 +!doTask(AgentPosX, AgentPosY)
@@ -302,7 +316,31 @@ agentState(checkingTaskboard, true). // state={checkingTaskboard, accepting, req
 +!doTask(AgentPosX, AgentPosY)
     : priv_doTask::agentState(submitting, true)
     <-  -+priv_doTask::agentPosition(AgentPosX,AgentPosY);
-        -+priv_doTask::agentState(submitting, false);
+        -+priv_doTask::agentState(submitting,false);
+        -+priv_doTask::executedAction(submit,true);
         ?beliefBase_doTask::acceptedTaskInfo(Task,_,_);
         !beliefBase_doTask::submitTask(Task);
+    .
++!doTask(AgentPosX, AgentPosY)
+    : priv_doTask::executedAction(submit,true)
+    & (default::lastAction(submit) & default::lastActionResult(success))
+    <-  -+priv_doTask::agentPosition(AgentPosX, AgentPosY);
+        -+priv_doTask::executedAction(submit,false);
+        -+priv_doTask::agentState(checkingTaskboard, true);
+        !doTask(AgentPosX, AgentPosY);
+    .
+//failed submit scenario to be implemented. current scenario is to explore so that the agent does not stop working.
++!doTask(AgentPosX, AgentPosY)
+    : priv_doTask::executedAction(submit,true)
+    & (default::lastAction(submit) & (default::lastActionResult(failed) | default::lastActionResult(failed_target)))
+    <-  -+priv_doTask::agentPosition(AgentPosX, AgentPosY);
+        -+priv_doTask::executedAction(submit,false);
+        -+priv_doTask::agentState(failedSubmitExplore,true);
+        !doTask(AgentPosX,AgentPosY);
+    .
+//failed submit scenario to be implemented. current scenario is to explore so that the agent does not stop working.
++!doTask(AgentPosX, AgentPosY)
+    : priv_doTask::agentState(failedSubmitExplore,true)
+    <-  -+priv_doTask::agentPosition(AgentPosX, AgentPosY);
+        !doTask_exploreFacade::doSpiralExplore(AgentPosX, AgentPosY);
     .
