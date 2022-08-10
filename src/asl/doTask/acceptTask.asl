@@ -1,4 +1,14 @@
+currTasksAvailable(listLength, []).
+getTasksListLength(TasksList, TasksListLength)
+    :-  .findall(task(Task,StepLimit,REQs), default::task(Task,StepLimit,_,REQs)[source(percept)], TasksList) 
+        & .length(TasksList, TasksListLength).
 
+
+// plan for finding all tasks on BB then pass the list length as a parameter to acceptTask
++!findallTasks
+    : getTasksListLength(TasksList, TasksListLength)
+    <-  -+currTasksAvailable(TasksListLength, TasksList);
+    .
 
 
 
@@ -9,7 +19,7 @@
         /*this accept action is programmed to fail so that it can be 
           handled from !doTask with lastActionResult(failed_target)*/
     .
-// plan for finding all tasks on BB then pass the list length as a parameter to acceptTask
+
 //acceptTask will have list length in the context, one for single block and one for multi block
 +!acceptTask
     : default::task(Task,StepLimit,_,REQs)[source(percept)]

@@ -4,19 +4,13 @@
 {include("getBlock.asl", beliefBase_doTask)}
 {include("submitTask.asl", beliefBase_doTask)}
 {include("explore/exploreFacade.asl", doTask_exploreFacade)}
+{include("communication/communication.asl", doTask_communication)}
 
-outsideTaskboardRange(AgentPosX,AgentPosY,DestinationX,DestinationY) :- 
+rangeToTaskboard(AgentPosX,AgentPosY,DestinationX,DestinationY, DistX, DistY) :- 
     ((math.abs(AgentPosX-DestinationX)>24 & DistX=50-math.abs(AgentPosX-DestinationX)) 
         | (math.abs(AgentPosX-DestinationX)<=24 & DistX=math.abs(AgentPosX-DestinationX)))
     & ((math.abs(AgentPosY-DestinationY)>24 & DistY=50-math.abs(AgentPosY-DestinationY)) 
-        | (math.abs(AgentPosY-DestinationY)<=24 & DistY=math.abs(AgentPosY-DestinationY)))
-    & DistX+DistY>2 .
-insideTaskboardRange(AgentPosX,AgentPosY,DestinationX,DestinationY) :- 
-    ((math.abs(AgentPosX-DestinationX)>24 & DistX=50-math.abs(AgentPosX-DestinationX)) 
-        | (math.abs(AgentPosX-DestinationX)<=24 & DistX=math.abs(AgentPosX-DestinationX)))
-    & ((math.abs(AgentPosY-DestinationY)>24 & DistY=50-math.abs(AgentPosY-DestinationY)) 
-        | (math.abs(AgentPosY-DestinationY)<=24 & DistY=math.abs(AgentPosY-DestinationY)))
-    & DistX+DistY<=2 .
+        | (math.abs(AgentPosY-DestinationY)<=24 & DistY=math.abs(AgentPosY-DestinationY))).
     
 {begin namespace(priv_doTask, local)}
 agentPosition(-1,-1).
@@ -24,10 +18,11 @@ currTaskboard(999, 999).
 currGoal(999, 999).
 currB0(999, 999).
 currB1(999, 999).
+tasksAskedAboutList([]).
 movingToPOI(poi, false). //poi={taskboard, b0, b1, goal}
 exploringMissingPOIs(missingPOI, false). //missingPOI={b0, b1, goal}
 executedAction(actionName, false). //actionName={accept, request, attach, submit}
-agentState(checkingTaskboard, true). // state={checkingTaskboard, accepting, requesting, attaching, submitting}
+agentState(checkingTaskboard, true). // state={checkingTaskboard, findingTasks, askingAboutTask, accepting, requesting, attaching, submitting}
 {end}
 
 +!doTask(AgentPosX, AgentPosY)
@@ -37,7 +32,7 @@ agentState(checkingTaskboard, true). // state={checkingTaskboard, accepting, req
         !checkForTaskboard(AgentPosX, AgentPosY);
         !doTask(AgentPosX,AgentPosY);
     .
-+!checkForTaskboard(AgentPosX, AgentPosY) //add searchFor while moving towards TB,Goal,Disp
++!checkForTaskboard(AgentPosX, AgentPosY)
     <-  ?exploreFacade_exploreAdapter::export_exploredListTaskboard(List);
         ?priv_doTask::currTaskboard(CurrTB_X, CurrTB_Y);
         !doTask_POIsComparison::findClosestPOI(AgentPosX, AgentPosY, CurrTB_X, CurrTB_Y, List, tb);
@@ -47,7 +42,7 @@ agentState(checkingTaskboard, true). // state={checkingTaskboard, accepting, req
     .
 +!doTask(AgentPosX, AgentPosY)
     : priv_doTask::movingToPOI(taskboard, true) & priv_doTask::currTaskboard(CurrTB_X,CurrTB_Y) 
-    & outsideTaskboardRange(AgentPosX,AgentPosY,CurrTB_X,CurrTB_Y)
+    & rangeToTaskboard(AgentPosX,AgentPosY,CurrTB_X,CurrTB_Y,DistX,DistY) & DistX+DistY>2 
     <-  -+priv_doTask::agentPosition(AgentPosX, AgentPosY);
         !doTask_exploreFacade::searchForPOIs(AgentPosX, AgentPosY);
         !checkForTaskboard(AgentPosX, AgentPosY);
@@ -59,12 +54,53 @@ agentState(checkingTaskboard, true). // state={checkingTaskboard, accepting, req
     .
 +!doTask(AgentPosX, AgentPosY)
     : priv_doTask::movingToPOI(taskboard, true) & priv_doTask::currTaskboard(CurrTB_X,CurrTB_Y) 
-    & insideTaskboardRange(AgentPosX,AgentPosY,CurrTB_X,CurrTB_Y)
+    & rangeToTaskboard(AgentPosX,AgentPosY,CurrTB_X,CurrTB_Y,DistX,DistY) & DistX+DistY<=2
     <-  -+priv_doTask::agentPosition(AgentPosX, AgentPosY);
         -+priv_doTask::movingToPOI(taskboard, false);
-        -+priv_doTask::agentState(accepting, true);
+        /*agentState should be changed from accepting to asking 
+        then after finished asking the state should be switched to accepting 
+        and continue working normally*/
+        // -+priv_doTask::agentState(accepting, true);
+        -+priv_doTask::agentState(findingTasks, true);
         !doTask(AgentPosX,AgentPosY);
     .
++!doTask(AgentPosX, AgentPosY)
+    : priv_doTask::agentState(findingTasks, true)
+    <-  -+priv_doTask::agentPosition(AgentPosX, AgentPosY);
+        -+priv_doTask::agentState(findingTasks, false);
+        !beliefBase_doTask::findallTasks;
+        -+priv_doTask::agentState(askingAboutTask, true);
+        !doTask(AgentPosX,AgentPosY);
+    .
++!doTask(AgentPosX, AgentPosY)
+    : priv_doTask::agentState(askingAboutTask, true) & beliefBase_doTask::currTasksAvailable(0,_)
+    <-  -+priv_doTask::agentPosition(AgentPosX, AgentPosY);
+        -+priv_doTask::agentState(askingAboutTask, false);
+        -+priv_doTask::agentState(findingTasks, true);
+        skip;//instead of !doTask so that we dont get stuck in !doTask loop
+    .
++!doTask(AgentPosX, AgentPosY)
+    : priv_doTask::agentState(askingAboutTask, true) & beliefBase_doTask::currTasksAvailable(ListLen,TasksList) & ListLen>0
+    <-  -+priv_doTask::agentPosition(AgentPosX, AgentPosY);
+        .nth(0,TasksList,task(Task,_,_));
+        .delete(task(Task,_,_), TasksList, ListAfterDeletion);
+        -+beliefBase_doTask::currTasksAvailable(ListAfterDeletion);
+        ?default::myAgentNum(MyAgentNum);
+        !doTask_communication::broadcastToAllAgents(didYouAcceptThisTask(Task, MyAgentNum));
+        ?priv_doTask::tasksAskedAboutList(ListBeforeUpdate);
+        .concat(ListBeforeUpdate,[Task],ListAfterUpdate);
+        -+priv_doTask::tasksAskedAboutList(ListAfterUpdate);
+        
+        /*loop through the TasksList and ask(communication) about the current task whether it is already accepted,
+        if so, ask about the next task in the list, if not accept the current task & start working on it*/ 
+        -+priv_doTask::agentState(askingAboutTask, false);
+        -+priv_doTask::agentState(waitingForAnswers, true);
+        !doTask(AgentPosX, AgentPosY);
+    .
+// +!doTask(AgentPosX,AgentPosY)
+//     : priv_doTask::agentState(waitingForAnswers, true)
+//     <-  -+priv_doTask::agentPosition(AgentPosX, AgentPosY);
+//     .
 +!doTask(AgentPosX, AgentPosY)
     : priv_doTask::agentState(accepting, true)
     <-  -+priv_doTask::agentPosition(AgentPosX, AgentPosY);
