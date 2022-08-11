@@ -19,6 +19,7 @@ currGoal(999, 999).
 currB0(999, 999).
 currB1(999, 999).
 tasksAskedAboutList([]).
+latestTaskAskedAbout(task).
 movingToPOI(poi, false). //poi={taskboard, b0, b1, goal}
 exploringMissingPOIs(missingPOI, false). //missingPOI={b0, b1, goal}
 executedAction(actionName, false). //actionName={accept, request, attach, submit}
@@ -79,28 +80,57 @@ agentState(checkingTaskboard, true). // state={checkingTaskboard, findingTasks, 
         -+priv_doTask::agentState(findingTasks, true);
         skip;//instead of !doTask so that we dont get stuck in !doTask loop
     .
++default::didYouAcceptThisTask(AskedTask, AgentNum)[source(AgentName)]
+    : not default::accepted(_) | (default::accepted(AcceptedTask) & AcceptedTask\==AskedTask)
+    <-  ?priv_doTask::tasksAskedAboutList(ListBeforeUpdate);
+        if(not .member(AskedTask, ListBeforeUpdate)){
+            .concat(ListBeforeUpdate,[AskedTask], ListAfterUpdate);
+            -+priv_doTask::tasksAskedAboutList(ListAfterUpdate);
+        }
+        ?default::myAgentNum(MyAgentNum);
+        ?priv_doTask::latestTaskAskedAbout(LatestTask);
+        if(LatestTask=AskedTask){
+            if(MyAgentNum>AgentNum){.send(AgentName, tell, yesDidAccept(AskedTask, MyAgentNum));}
+            else{.send(AgentName, tell, noDidNotAccept(AskedTask, MyAgentNum));}
+        }else{
+            .send(AgentName, tell, noDidNotAccept(AskedTask, MyAgentNum));
+        }
+        +debug___________________Question(didYouAcceptThisTask(AskedTask, AgentNum)[source(AgentName)]);
+        .abolish(default::didYouAcceptThisTask(AskedTask, AgentNum)[source(AgentName)]);
+        ?default::step(X);
+        +debug___________________belief(iAnsweredInStep,X);
+
+    .
 +!doTask(AgentPosX, AgentPosY)
     : priv_doTask::agentState(askingAboutTask, true) & beliefBase_doTask::currTasksAvailable(ListLen,TasksList) & ListLen>0
     <-  -+priv_doTask::agentPosition(AgentPosX, AgentPosY);
         .nth(0,TasksList,task(Task,_,_));
         .delete(task(Task,_,_), TasksList, ListAfterDeletion);
-        -+beliefBase_doTask::currTasksAvailable(ListAfterDeletion);
+
+        -+beliefBase_doTask::currTasksAvailable(ListLen-1, ListAfterDeletion);
         ?default::myAgentNum(MyAgentNum);
-        !doTask_communication::broadcastToAllAgents(didYouAcceptThisTask(Task, MyAgentNum));
         ?priv_doTask::tasksAskedAboutList(ListBeforeUpdate);
-        .concat(ListBeforeUpdate,[Task],ListAfterUpdate);
-        -+priv_doTask::tasksAskedAboutList(ListAfterUpdate);
+        if(not .member(Task, ListBeforeUpdate)){
+            -+priv_doTask::latestTaskAskedAbout(Task);
+            !doTask_communication::broadcastToAllAgents(didYouAcceptThisTask(Task, MyAgentNum));
+            .concat(ListBeforeUpdate,[Task], ListAfterUpdate);
+            -+priv_doTask::tasksAskedAboutList(ListAfterUpdate);
+
+            -+priv_doTask::agentState(askingAboutTask, false);
+            -+priv_doTask::agentState(waitingForAnswers, true);
+        }
+
         
         /*loop through the TasksList and ask(communication) about the current task whether it is already accepted,
         if so, ask about the next task in the list, if not accept the current task & start working on it*/ 
-        -+priv_doTask::agentState(askingAboutTask, false);
-        -+priv_doTask::agentState(waitingForAnswers, true);
+        
         !doTask(AgentPosX, AgentPosY);
     .
-// +!doTask(AgentPosX,AgentPosY)
-//     : priv_doTask::agentState(waitingForAnswers, true)
-//     <-  -+priv_doTask::agentPosition(AgentPosX, AgentPosY);
-//     .
++!doTask(AgentPosX,AgentPosY)
+    : priv_doTask::agentState(waitingForAnswers, true)
+    <-  -+priv_doTask::agentPosition(AgentPosX, AgentPosY);
+        skip;
+    .
 +!doTask(AgentPosX, AgentPosY)
     : priv_doTask::agentState(accepting, true)
     <-  -+priv_doTask::agentPosition(AgentPosX, AgentPosY);
