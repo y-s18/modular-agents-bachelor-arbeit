@@ -287,22 +287,28 @@ agentState(checkingTaskboard, true). // state={checkingTaskboard, findingTasks, 
         !doTask(AgentPosX,AgentPosY);
     .
 +!deleteWrongDispPosition(b0)
-    <-  ?priv_doTask::currB0(CurrDispX, CurrDispY); 
-        ?exploreFacade_exploreAdapter::export_exploredListB0(List);
-        if(.member(b0(CurrDispX, CurrDispY), List)){
-            .delete(b0(CurrDispX, CurrDispY), List, ListAfterDeletion);
-            !exploreFacade_exploreAdapter::updateExploredList(b0, ListAfterDeletion);
-            -+priv_doTask::currB0(999,999);
-        }
+    : priv_doTask::currB0(CurrDispX, CurrDispY) & exploreFacade_exploreAdapter::export_exploredListB0(List)
+    & checkIfMember(b0(CurrDispX, CurrDispY), List)
+    <-  .delete(b0(CurrDispX, CurrDispY), List, ListAfterDeletion);
+        !exploreFacade_exploreAdapter::updateExploredList(b0, ListAfterDeletion);
+        -+priv_doTask::currB0(999,999);
+    .
++!deleteWrongDispPosition(b0)
+    : priv_doTask::currB0(CurrDispX, CurrDispY) & exploreFacade_exploreAdapter::export_exploredListB0(List)
+    & not checkIfMember(b0(CurrDispX, CurrDispY), List)
+    <-  .print("This b0 dispenser is not in the list!");
     .
 +!deleteWrongDispPosition(b1)
-    <-  ?priv_doTask::currB1(CurrDispX, CurrDispY); 
-        ?exploreFacade_exploreAdapter::export_exploredListB1(List);
-        if(.member(b1(CurrDispX, CurrDispY), List)){
-            .delete(b1(CurrDispX, CurrDispY), List, ListAfterDeletion);
-            !exploreFacade_exploreAdapter::updateExploredList(b1, ListAfterDeletion);
-            -+priv_doTask::currB1(999,999);
-        }
+    : priv_doTask::currB1(CurrDispX, CurrDispY) & exploreFacade_exploreAdapter::export_exploredListB1(List)
+    & checkIfMember(b1(CurrDispX, CurrDispY), List)
+    <-  .delete(b1(CurrDispX, CurrDispY), List, ListAfterDeletion);
+        !exploreFacade_exploreAdapter::updateExploredList(b1, ListAfterDeletion);
+        -+priv_doTask::currB1(999,999);
+    .
++!deleteWrongDispPosition(b1)
+    : priv_doTask::currB1(CurrDispX, CurrDispY) & exploreFacade_exploreAdapter::export_exploredListB1(List)
+    & not checkIfMember(b1(CurrDispX, CurrDispY), List)
+    <-  .print("This b1 dispenser is not in the list!");
     .
 //another scenario: if agent attached to a block & tries to request a new block(attached block on Disp) -> failed_blocked
 +!doTask(AgentPosX, AgentPosY)
