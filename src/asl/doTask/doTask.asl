@@ -11,6 +11,7 @@ rangeToTaskboard(AgentPosX,AgentPosY,DestinationX,DestinationY, DistX, DistY) :-
         | (math.abs(AgentPosX-DestinationX)<=24 & DistX=math.abs(AgentPosX-DestinationX)))
     & ((math.abs(AgentPosY-DestinationY)>24 & DistY=50-math.abs(AgentPosY-DestinationY)) 
         | (math.abs(AgentPosY-DestinationY)<=24 & DistY=math.abs(AgentPosY-DestinationY))).
+checkIfMember(Element, List) :- .member(Element, List).
     
 {begin namespace(priv_doTask, local)}
 agentPosition(-1,-1).
@@ -83,49 +84,58 @@ agentState(checkingTaskboard, true). // state={checkingTaskboard, findingTasks, 
 +default::didYouAcceptThisTask(AskedTask, AgentNum)[source(AgentName)]
     : not default::accepted(_) | (default::accepted(AcceptedTask) & AcceptedTask\==AskedTask)
     <-  ?priv_doTask::tasksAskedAboutList(ListBeforeUpdate);
-        if(not .member(AskedTask, ListBeforeUpdate)){
-            .concat(ListBeforeUpdate,[AskedTask], ListAfterUpdate);
-            -+priv_doTask::tasksAskedAboutList(ListAfterUpdate);
-        }
+        !storeReceivedTaskName(AskedTask, ListBeforeUpdate);
         ?default::myAgentNum(MyAgentNum);
         ?priv_doTask::latestTaskAskedAbout(LatestTask);
-        if(LatestTask=AskedTask){
-            if(MyAgentNum>AgentNum){.send(AgentName, tell, yesDidAccept(AskedTask, MyAgentNum));}
-            else{.send(AgentName, tell, noDidNotAccept(AskedTask, MyAgentNum));}
-        }else{
-            .send(AgentName, tell, noDidNotAccept(AskedTask, MyAgentNum));
-        }
+        !answerReceivedQuestion(LatestTask, AskedTask, MyAgentNum, AgentNum, AgentName);
         +debug___________________Question(didYouAcceptThisTask(AskedTask, AgentNum)[source(AgentName)]);
         .abolish(default::didYouAcceptThisTask(AskedTask, AgentNum)[source(AgentName)]);
         ?default::step(X);
         +debug___________________belief(iAnsweredInStep,X);
-
+    .
++!storeReceivedTaskName(AskedTask, ListBeforeUpdate)
+    : not checkIfMember(AskedTask, ListBeforeUpdate)
+    <-  .concat(ListBeforeUpdate,[AskedTask], ListAfterUpdate);
+        -+priv_doTask::tasksAskedAboutList(ListAfterUpdate);
+    .
++!storeReceivedTaskName(AskedTask, ListBeforeUpdate)
+    : checkIfMember(AskedTask, ListBeforeUpdate)
+    <-  .print(AskedTask, " is already stored!");
+    .
++!answerReceivedQuestion(LatestTask, AskedTask, MyAgentNum, AgentNum, AgentName)
+    : LatestTask=AskedTask & MyAgentNum>AgentNum
+    <-  !doTask_communication::sendToAgent(AgentName, yesDidAccept(AskedTask, MyAgentNum));
+    .
++!answerReceivedQuestion(LatestTask, AskedTask, MyAgentNum, AgentNum, AgentName)
+    : (LatestTask=AskedTask & MyAgentNum<AgentNum) | LatestTask\==AskedTask
+    <-  !doTask_communication::sendToAgent(AgentName, noDidNotAccept(AskedTask, MyAgentNum));
     .
 +!doTask(AgentPosX, AgentPosY)
     : priv_doTask::agentState(askingAboutTask, true) & beliefBase_doTask::currTasksAvailable(ListLen,TasksList) & ListLen>0
     <-  -+priv_doTask::agentPosition(AgentPosX, AgentPosY);
         .nth(0,TasksList,task(Task,_,_));
         .delete(task(Task,_,_), TasksList, ListAfterDeletion);
-
         -+beliefBase_doTask::currTasksAvailable(ListLen-1, ListAfterDeletion);
-        ?default::myAgentNum(MyAgentNum);
         ?priv_doTask::tasksAskedAboutList(ListBeforeUpdate);
-        if(not .member(Task, ListBeforeUpdate)){
-            -+priv_doTask::latestTaskAskedAbout(Task);
-            !doTask_communication::broadcastToAllAgents(didYouAcceptThisTask(Task, MyAgentNum));
-            .concat(ListBeforeUpdate,[Task], ListAfterUpdate);
-            -+priv_doTask::tasksAskedAboutList(ListAfterUpdate);
-
-            -+priv_doTask::agentState(askingAboutTask, false);
-            -+priv_doTask::agentState(waitingForAnswers, true);
-        }
-
-        
-        /*loop through the TasksList and ask(communication) about the current task whether it is already accepted,
-        if so, ask about the next task in the list, if not accept the current task & start working on it*/ 
-        
+        !broadcastQuestionIfTaskNotMember(Task, ListBeforeUpdate);
         !doTask(AgentPosX, AgentPosY);
     .
++!broadcastQuestionIfTaskNotMember(Task, ListBeforeUpdate)
+    : not checkIfMember(Task, ListBeforeUpdate)
+    <-  -+priv_doTask::latestTaskAskedAbout(Task);
+        ?default::myAgentNum(MyAgentNum);
+        !doTask_communication::broadcastToAllAgents(didYouAcceptThisTask(Task, MyAgentNum));
+        .concat(ListBeforeUpdate,[Task], ListAfterUpdate);
+        -+priv_doTask::tasksAskedAboutList(ListAfterUpdate);
+        -+priv_doTask::agentState(askingAboutTask, false);
+        -+priv_doTask::agentState(waitingForAnswers, true);
+    .
++!broadcastQuestionIfTaskNotMember(Task, ListBeforeUpdate)
+    : checkIfMember(Task, ListBeforeUpdate)
+    <-  .print(Task, " has already been asken about!");
+        +debug___________________belief(Task, " has already been asken about!");
+    .
+/* if not accept the current task & start working on it*/ 
 +!doTask(AgentPosX,AgentPosY)
     : priv_doTask::agentState(waitingForAnswers, true)
     <-  -+priv_doTask::agentPosition(AgentPosX, AgentPosY);
