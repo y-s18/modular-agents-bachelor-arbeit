@@ -12,7 +12,9 @@ rangeToTaskboard(AgentPosX,AgentPosY,DestinationX,DestinationY, DistX, DistY) :-
     & ((math.abs(AgentPosY-DestinationY)>24 & DistY=50-math.abs(AgentPosY-DestinationY)) 
         | (math.abs(AgentPosY-DestinationY)<=24 & DistY=math.abs(AgentPosY-DestinationY))).
 checkIfMember(Element, List) :- .member(Element, List).
-    
+findall(ElementToFind, FoundList) :- .findall(ElementToFind, ElementToFind, FoundList).
+getListLength(List, Length) :- .length(List, Length).
+
 {begin namespace(priv_doTask, local)}
 agentPosition(-1,-1).
 currTaskboard(999, 999).
@@ -83,6 +85,9 @@ agentState(checkingTaskboard, true). // state={checkingTaskboard, findingTasks, 
     .
 +default::didYouAcceptThisTask(AskedTask, AgentNum)[source(AgentName)]
     : not default::accepted(_) | (default::accepted(AcceptedTask) & AcceptedTask\==AskedTask)
+    /*!answerReceivedQuestion should be fixed: sending yes answers when the already AcceptedTask is not equal to the AskedTask
+        and that is causing that only one agent is accepting a task then it sends all other agents yes answers not allowing anyone
+        to accept any task*/
     <-  ?priv_doTask::tasksAskedAboutList(ListBeforeUpdate);
         !storeReceivedTaskName(AskedTask, ListBeforeUpdate);
         ?default::myAgentNum(MyAgentNum);
@@ -135,18 +140,43 @@ agentState(checkingTaskboard, true). // state={checkingTaskboard, findingTasks, 
     <-  .print(Task, " has already been asken about!");
         +debug___________________belief(Task, " has already been asken about!");
     .
-/* if not accept the current task & start working on it*/ 
 +!doTask(AgentPosX,AgentPosY)
     : priv_doTask::agentState(waitingForAnswers, true)
     <-  -+priv_doTask::agentPosition(AgentPosX, AgentPosY);
+        !checkAnswers;
+        // !doTask(AgentPosX, AgentPosY); //!doTask should not be here so the agent dont get stuck in !doTask loop.
         skip;
+    .
++!checkAnswers
+    : findall(default::yesDidAccept(_,_), FoundListYes) & getListLength(FoundListYes, LengthYes) 
+    & findall(default::noDidNotAccept(_,_), FoundListNo) & getListLength(FoundListNo, LengthNo)
+    & default::teamSize(TeamSize) & (LengthYes+LengthNo)=(TeamSize-1)
+    <-  +debug___________________belief("This is the FoundList for yes: ", FoundListYes);
+        +debug___________________belief("This is the FoundList for no: ", FoundListNo);
+        .abolish(default::yesDidAccept(_,_));
+        .abolish(default::noDidNotAccept(_,_));
+        !decideBasedOnAnswers(LengthYes);
+    .
++!decideBasedOnAnswers(YesAnswersListLength)
+    : YesAnswersListLength>0
+    <-  -+priv_doTask::agentState(waitingForAnswers, false);
+        -+priv_doTask::agentState(askingAboutTask, true);
+    .
++!decideBasedOnAnswers(YesAnswersListLength)
+    : YesAnswersListLength=0
+    <-  -+priv_doTask::agentState(waitingForAnswers, false);
+        -+priv_doTask::agentState(accepting, true);
+    .
+-!checkAnswers
+    <-  .print("Waiting for answers.....................................!");
     .
 +!doTask(AgentPosX, AgentPosY)
     : priv_doTask::agentState(accepting, true)
     <-  -+priv_doTask::agentPosition(AgentPosX, AgentPosY);
         -+priv_doTask::agentState(accepting, false);
         -+priv_doTask::executedAction(accept,true);
-        !beliefBase_doTask::acceptTask;
+        -+priv_doTask::latestTaskAskedAbout(Task);
+        !beliefBase_doTask::acceptTask(Task);
     .
 +!doTask(AgentPosX, AgentPosY)
     : (default::lastAction(accept) & default::lastActionResult(success))
