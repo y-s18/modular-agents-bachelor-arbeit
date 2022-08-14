@@ -15,4 +15,5 @@ lib/results/*
 lib/conf/*
 settings.gradle
 src/asl/experiments.asl
-
+bachelorArbeit_Modules.mas2j
+conf/eismassimconfig.json
