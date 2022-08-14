@@ -12,7 +12,7 @@ activatePlan(false).
 +!calculateNextSpiralLine(AgentPosX, AgentPosY, SpiralStepRange, MultiplicatorMaximum)
     <-  !exploreAdapter_explore::calculateNextSpiralLine(AgentPosX, AgentPosY, SpiralStepRange, MultiplicatorMaximum);
         ?exploreAdapter_explore::export_EndpointCoordinates(CorrectedEndpointX, CorrectedEndpointY);
-        -+export_EndpointCoordinates(CorrectedEndpointX, CorrectedEndpointY);
+        -+default::export_EndpointCoordinates(CorrectedEndpointX, CorrectedEndpointY);
     .
 +!searchFor(Something, AgentPosX, AgentPosY)
     <-  !exploreAdapter_explore::searchFor(Something);
@@ -23,19 +23,19 @@ activatePlan(false).
     .
 +!updateExploredList(b0, UpdatedList)
     <-  -+priv_exploreAdapter::exploredListB0(UpdatedList);
-        -+export_exploredListB0(UpdatedList);
+        -+default::export_exploredListB0(UpdatedList);
     .
 +!updateExploredList(b1, UpdatedList)
     <-  -+priv_exploreAdapter::exploredListB1(UpdatedList);
-        -+export_exploredListB1(UpdatedList);
+        -+default::export_exploredListB1(UpdatedList);
     .
 +!updateExploredList(gl, UpdatedList)
     <-  -+priv_exploreAdapter::exploredListGoal(UpdatedList);
-        -+export_exploredListGoal(UpdatedList);
+        -+default::export_exploredListGoal(UpdatedList);
     .
 +!updateExploredList(tb, UpdatedList)
     <-  -+priv_exploreAdapter::exploredListTaskboard(UpdatedList);
-        -+export_exploredListTaskboard(UpdatedList);
+        -+default::export_exploredListTaskboard(UpdatedList);
     .
 
 {begin namespace(priv_exploreAdapter, local)}
@@ -138,10 +138,10 @@ activatePlan(false).
         ?priv_exploreAdapter::exploredListB1(TMP_ListB1);
         ?priv_exploreAdapter::exploredListGoal(TMP_ListGoal);
         ?priv_exploreAdapter::exploredListTaskboard(TMP_ListTaskboard);
-        -+export_exploredListB0(TMP_ListB0);
-        -+export_exploredListB1(TMP_ListB1);
-        -+export_exploredListGoal(TMP_ListGoal);
-        -+export_exploredListTaskboard(TMP_ListTaskboard);
+        -+default::export_exploredListB0(TMP_ListB0);
+        -+default::export_exploredListB1(TMP_ListB1);
+        -+default::export_exploredListGoal(TMP_ListGoal);
+        -+default::export_exploredListTaskboard(TMP_ListTaskboard);
     .
 -!exportPOIs
     <-  .print("\n############\nPLAN FAILED: !exportPOIs can not be called from outside the module\n############\n");.

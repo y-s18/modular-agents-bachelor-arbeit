@@ -13,7 +13,7 @@
         !searchForPOIs(AgentPosX, AgentPosY);
         // -+priv_exploreFacade::activatePlan(false);
         !exploreFacade_exploreAdapter::calculateNextSpiralLine(AgentPosX, AgentPosY, 4, 6);
-		?exploreFacade_exploreAdapter::export_EndpointCoordinates(X_Endpoint, Y_Endpoint);
+		?default::export_EndpointCoordinates(X_Endpoint, Y_Endpoint);
         !exploreFacade_movementFacade::moveToLocation(AgentPosX, AgentPosY, X_Endpoint, Y_Endpoint);
     .
 +!doRandomExplore(AgentPosX, AgentPosY)
