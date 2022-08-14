@@ -13,14 +13,14 @@ rsltDirection(-1).
         ?movementAdapter_movement::export_RsltStepCoordinates(RSLT_X,RSLT_Y);
         !priv_movementAdapter::convertStepCoordinatesToDirection(RSLT_X,RSLT_Y);
         ?priv_movementAdapter::rsltDirection(RsltDirection);
-        -+export_RsltDirection(RsltDirection);
+        -+default::export_RsltDirection(RsltDirection);
     .
 +!moveOneRandomStep
     <-  !movementAdapter_movement::moveOneRandomStep;
         ?movementAdapter_movement::export_RsltStepCoordinates(RSLT_X,RSLT_Y);
         !priv_movementAdapter::convertStepCoordinatesToDirection(RSLT_X,RSLT_Y);
         ?priv_movementAdapter::rsltDirection(RsltDirection);
-        -+export_RsltDirection(RsltDirection);
+        -+default::export_RsltDirection(RsltDirection);
     .
     
 {begin namespace(priv_movementAdapter, local)}
