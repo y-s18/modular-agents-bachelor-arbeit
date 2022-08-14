@@ -84,10 +84,6 @@ agentState(checkingTaskboard, true). // state={checkingTaskboard, findingTasks, 
         skip;//instead of !doTask so that we dont get stuck in !doTask loop
     .
 +default::didYouAcceptThisTask(AskedTask, AgentNum)[source(AgentName)]
-    : not default::accepted(_) | (default::accepted(AcceptedTask) & AcceptedTask\==AskedTask)
-    /*!answerReceivedQuestion should be fixed: sending yes answers when the already AcceptedTask is not equal to the AskedTask
-        and that is causing that only one agent is accepting a task then it sends all other agents yes answers not allowing anyone
-        to accept any task*/
     <-  ?priv_doTask::tasksAskedAboutList(ListBeforeUpdate);
         !storeReceivedTaskName(AskedTask, ListBeforeUpdate);
         ?default::myAgentNum(MyAgentNum);
@@ -108,11 +104,14 @@ agentState(checkingTaskboard, true). // state={checkingTaskboard, findingTasks, 
     <-  .print(AskedTask, " is already stored!");
     .
 +!answerReceivedQuestion(LatestTask, AskedTask, MyAgentNum, AgentNum, AgentName)
-    : LatestTask=AskedTask & MyAgentNum>AgentNum
+    : (default::accepted(AcceptedTask) & AcceptedTask=AskedTask)
+    | ((not default::accepted(_) | (default::accepted(AcceptedTask) & AcceptedTask\==AskedTask))
+    & LatestTask=AskedTask & MyAgentNum>AgentNum)
     <-  !doTask_communication::sendToAgent(AgentName, yesDidAccept(AskedTask, MyAgentNum));
     .
 +!answerReceivedQuestion(LatestTask, AskedTask, MyAgentNum, AgentNum, AgentName)
-    : (LatestTask=AskedTask & MyAgentNum<AgentNum) | LatestTask\==AskedTask
+    : (not default::accepted(_) | (default::accepted(AcceptedTask) & AcceptedTask\==AskedTask))
+    & ((LatestTask=AskedTask & MyAgentNum<AgentNum) | LatestTask\==AskedTask)
     <-  !doTask_communication::sendToAgent(AgentName, noDidNotAccept(AskedTask, MyAgentNum));
     .
 +!doTask(AgentPosX, AgentPosY)
@@ -175,7 +174,7 @@ agentState(checkingTaskboard, true). // state={checkingTaskboard, findingTasks, 
     <-  -+priv_doTask::agentPosition(AgentPosX, AgentPosY);
         -+priv_doTask::agentState(accepting, false);
         -+priv_doTask::executedAction(accept,true);
-        -+priv_doTask::latestTaskAskedAbout(Task);
+        ?priv_doTask::latestTaskAskedAbout(Task);
         !beliefBase_doTask::acceptTask(Task);
     .
 +!doTask(AgentPosX, AgentPosY)
