@@ -26,7 +26,9 @@ latestTaskAskedAbout(task).
 movingToPOI(poi, false). //poi={taskboard, b0, b1, goal}
 exploringMissingPOIs(missingPOI, false). //missingPOI={b0, b1, goal}
 executedAction(actionName, false). //actionName={accept, request, attach, submit}
-agentState(checkingTaskboard, true). // state={checkingTaskboard, findingTasks, askingAboutTask, accepting, requesting, attaching, submitting}
+agentState(checkingTaskboard, true).
+/*state={checkingTaskboard, findingTasks, askingAboutTask, waitingForAnswers, accepting, requesting, attaching, 
+        submitting, failedSubmitExplore}*/
 {end}
 
 +!doTask(AgentPosX, AgentPosY)
@@ -37,7 +39,7 @@ agentState(checkingTaskboard, true). // state={checkingTaskboard, findingTasks, 
         !doTask(AgentPosX,AgentPosY);
     .
 +!checkForTaskboard(AgentPosX, AgentPosY)
-    <-  ?exploreFacade_exploreAdapter::export_exploredListTaskboard(List);
+    <-  ?default::export_exploredListTaskboard(List);
         ?priv_doTask::currTaskboard(CurrTB_X, CurrTB_Y);
         !doTask_POIsComparison::findClosestPOI(AgentPosX, AgentPosY, CurrTB_X, CurrTB_Y, List, tb);
         ?doTask_POIsComparison::export_CurrPOI(CurrPOI_X, CurrPOI_Y);
@@ -195,7 +197,7 @@ agentState(checkingTaskboard, true). // state={checkingTaskboard, findingTasks, 
     .
 +!checkForDispenser(AgentPosX, AgentPosY)
     : beliefBase_doTask::multiBlockTask(false) & beliefBase_doTask::currRequiredDisp(b0,_,_)
-    & exploreFacade_exploreAdapter::export_exploredListB0(List) & List\==[]
+    & default::export_exploredListB0(List) & List\==[]
     <-  ?priv_doTask::currB0(CurrB0_X,CurrB0_Y);
         !doTask_POIsComparison::findClosestPOI(AgentPosX, AgentPosY, CurrB0_X, CurrB0_Y, List, b0);
         ?doTask_POIsComparison::export_CurrPOI(CurrPOI_X, CurrPOI_Y);
@@ -204,11 +206,11 @@ agentState(checkingTaskboard, true). // state={checkingTaskboard, findingTasks, 
     .
 +!checkForDispenser(AgentPosX, AgentPosY)
     : beliefBase_doTask::multiBlockTask(false) & beliefBase_doTask::currRequiredDisp(b0,_,_)
-    & exploreFacade_exploreAdapter::export_exploredListB0(List) & List=[]
+    & default::export_exploredListB0(List) & List=[]
     <-  -+priv_doTask::exploringMissingPOIs(b0, true);
     .
 +!doTask(AgentPosX, AgentPosY)
-    : priv_doTask::exploringMissingPOIs(b0,true) & exploreFacade_exploreAdapter::export_exploredListB0(List) & List\==[]
+    : priv_doTask::exploringMissingPOIs(b0,true) & default::export_exploredListB0(List) & List\==[]
     & beliefBase_doTask::multiBlockTask(false)
     <-  -+priv_doTask::agentPosition(AgentPosX,AgentPosY);
         -+priv_doTask::exploringMissingPOIs(b0,false);
@@ -216,14 +218,14 @@ agentState(checkingTaskboard, true). // state={checkingTaskboard, findingTasks, 
         !doTask(AgentPosX, AgentPosY);
     .
 +!doTask(AgentPosX, AgentPosY)
-    : priv_doTask::exploringMissingPOIs(b0, true) & exploreFacade_exploreAdapter::export_exploredListB0(List) & List=[]
+    : priv_doTask::exploringMissingPOIs(b0, true) & default::export_exploredListB0(List) & List=[]
     & beliefBase_doTask::multiBlockTask(false)
     <-  -+priv_doTask::agentPosition(AgentPosX, AgentPosY);
         !doTask_exploreFacade::doSpiralExplore(AgentPosX, AgentPosY);
     .
 +!checkForDispenser(AgentPosX, AgentPosY)
     : beliefBase_doTask::multiBlockTask(false) & beliefBase_doTask::currRequiredDisp(b1,_,_)
-    & exploreFacade_exploreAdapter::export_exploredListB1(List) & List\==[]
+    & default::export_exploredListB1(List) & List\==[]
     <-  ?priv_doTask::currB1(CurrB1_X, CurrB1_Y);
         !doTask_POIsComparison::findClosestPOI(AgentPosX, AgentPosY, CurrB1_X, CurrB1_Y, List, b1);
         ?doTask_POIsComparison::export_CurrPOI(CurrPOI_X, CurrPOI_Y);
@@ -232,11 +234,11 @@ agentState(checkingTaskboard, true). // state={checkingTaskboard, findingTasks, 
     .
 +!checkForDispenser(AgentPosX, AgentPosY)
     : beliefBase_doTask::multiBlockTask(false) & beliefBase_doTask::currRequiredDisp(b1,_,_)
-    & exploreFacade_exploreAdapter::export_exploredListB1(List) & List=[]
+    & default::export_exploredListB1(List) & List=[]
     <-  -+priv_doTask::exploringMissingPOIs(b1, true);
     .
 +!doTask(AgentPosX, AgentPosY)
-    : priv_doTask::exploringMissingPOIs(b1,true) & exploreFacade_exploreAdapter::export_exploredListB1(List) & List\==[]
+    : priv_doTask::exploringMissingPOIs(b1,true) & default::export_exploredListB1(List) & List\==[]
     & beliefBase_doTask::multiBlockTask(false)
     <-  -+priv_doTask::agentPosition(AgentPosX,AgentPosY);
         -+priv_doTask::exploringMissingPOIs(b1,false);
@@ -244,7 +246,7 @@ agentState(checkingTaskboard, true). // state={checkingTaskboard, findingTasks, 
         !doTask(AgentPosX, AgentPosY);
     .
 +!doTask(AgentPosX, AgentPosY)
-    : priv_doTask::exploringMissingPOIs(b1, true) & exploreFacade_exploreAdapter::export_exploredListB1(List) & List=[]
+    : priv_doTask::exploringMissingPOIs(b1, true) & default::export_exploredListB1(List) & List=[]
     & beliefBase_doTask::multiBlockTask(false)
     <-  -+priv_doTask::agentPosition(AgentPosX, AgentPosY);
         !doTask_exploreFacade::doSpiralExplore(AgentPosX, AgentPosY);
@@ -316,26 +318,26 @@ agentState(checkingTaskboard, true). // state={checkingTaskboard, findingTasks, 
         !doTask(AgentPosX,AgentPosY);
     .
 +!deleteWrongDispPosition(b0)
-    : priv_doTask::currB0(CurrDispX, CurrDispY) & exploreFacade_exploreAdapter::export_exploredListB0(List)
+    : priv_doTask::currB0(CurrDispX, CurrDispY) & default::export_exploredListB0(List)
     & checkIfMember(b0(CurrDispX, CurrDispY), List)
     <-  .delete(b0(CurrDispX, CurrDispY), List, ListAfterDeletion);
         !exploreFacade_exploreAdapter::updateExploredList(b0, ListAfterDeletion);
         -+priv_doTask::currB0(999,999);
     .
 +!deleteWrongDispPosition(b0)
-    : priv_doTask::currB0(CurrDispX, CurrDispY) & exploreFacade_exploreAdapter::export_exploredListB0(List)
+    : priv_doTask::currB0(CurrDispX, CurrDispY) & default::export_exploredListB0(List)
     & not checkIfMember(b0(CurrDispX, CurrDispY), List)
     <-  .print("This b0 dispenser is not in the list!");
     .
 +!deleteWrongDispPosition(b1)
-    : priv_doTask::currB1(CurrDispX, CurrDispY) & exploreFacade_exploreAdapter::export_exploredListB1(List)
+    : priv_doTask::currB1(CurrDispX, CurrDispY) & default::export_exploredListB1(List)
     & checkIfMember(b1(CurrDispX, CurrDispY), List)
     <-  .delete(b1(CurrDispX, CurrDispY), List, ListAfterDeletion);
         !exploreFacade_exploreAdapter::updateExploredList(b1, ListAfterDeletion);
         -+priv_doTask::currB1(999,999);
     .
 +!deleteWrongDispPosition(b1)
-    : priv_doTask::currB1(CurrDispX, CurrDispY) & exploreFacade_exploreAdapter::export_exploredListB1(List)
+    : priv_doTask::currB1(CurrDispX, CurrDispY) & default::export_exploredListB1(List)
     & not checkIfMember(b1(CurrDispX, CurrDispY), List)
     <-  .print("This b1 dispenser is not in the list!");
     .
@@ -382,7 +384,7 @@ agentState(checkingTaskboard, true). // state={checkingTaskboard, findingTasks, 
         !doTask(AgentPosX, AgentPosY);
     .
 +!checkForGoal(AgentPosX, AgentPosY)
-    : exploreFacade_exploreAdapter::export_exploredListGoal(List) & List\==[]
+    : default::export_exploredListGoal(List) & List\==[]
     <-  ?priv_doTask::currGoal(CurrGoal_X, CurrGoal_Y);
         !doTask_POIsComparison::findClosestPOI(AgentPosX,AgentPosY,CurrGoal_X,CurrGoal_Y,List,gl);
         ?doTask_POIsComparison::export_CurrPOI(CurrPOI_X,CurrPOI_Y);
@@ -390,18 +392,18 @@ agentState(checkingTaskboard, true). // state={checkingTaskboard, findingTasks, 
         -+priv_doTask::movingToPOI(goal, true);
     .
 +!checkForGoal(AgentPosX, AgentPosY)
-    : exploreFacade_exploreAdapter::export_exploredListGoal(List) & List=[] 
+    : default::export_exploredListGoal(List) & List=[] 
     <-  -+priv_doTask::exploringMissingPOIs(goal, true);
     .
 +!doTask(AgentPosX, AgentPosY)
-    : priv_doTask::exploringMissingPOIs(goal, true) & exploreFacade_exploreAdapter::export_exploredListGoal(List) & List\==[]
+    : priv_doTask::exploringMissingPOIs(goal, true) & default::export_exploredListGoal(List) & List\==[]
     <-  -+priv_doTask::agentPosition(AgentPosX, AgentPosY);
         -+priv_doTask::exploringMissingPOIs(goal,false);
         !checkForGoal(AgentPosX, AgentPosY);
         !doTask(AgentPosX,AgentPosY);
     .
 +!doTask(AgentPosX, AgentPosY)
-    : priv_doTask::exploringMissingPOIs(goal, true) & exploreFacade_exploreAdapter::export_exploredListGoal(List) & List=[]
+    : priv_doTask::exploringMissingPOIs(goal, true) & default::export_exploredListGoal(List) & List=[]
     <-  -+priv_doTask::agentPosition(AgentPosX, AgentPosY);
         !doTask_exploreFacade::doSpiralExplore(AgentPosX, AgentPosY);
     .
