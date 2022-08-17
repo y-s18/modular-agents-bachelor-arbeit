@@ -1,0 +1,29 @@
+MAS bachelorArbeit_Modules {
+
+	infrastructure: Centralised
+	environment: jason.eis.EISAdapter
+	agents:
+//		explore;
+		agent;
+//		agentMovementTest;
+//		agentExploreTest;
+//		agent [verbose=1, mindinspector="gui(100,html)"];
+//		agent [verbose=1, mindinspector="gui(cycle,html)"];
+//		agent [verbose=1, mindinspector="gui(100,html)"];
+//		agent [verbose=1, mindinspector="gui(cycle,html,history)"];
+//		agent [verbose=1, mindinspector="file(cycle,xml,log)"];
+
+//	agents:
+//		test#15;
+//		/* change # number
+//		 * SC: change entities number
+//		 * SC: entities number is per team
+//		 * SC: change teamsPerMatch
+//		 * EISC: add agents to entities same password if same team
+//		 * EISC: enumerate username
+//		 */
+	aslSourcePath:
+		"src/asl";
+		"src/asl/movementTests";
+		"src/asl/exploreTests";
+}
