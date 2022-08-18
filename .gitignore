@@ -14,4 +14,3 @@ lib/replays/*
 lib/results/*
 lib/conf/*
 src/asl/experiments.asl
-conf/eismassimconfig.json
