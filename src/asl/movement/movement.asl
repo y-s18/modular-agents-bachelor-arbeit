@@ -1,10 +1,8 @@
 
 {begin namespace(priv_movement, local)}
 init_MapSize(50,50,overlap). //(50x50, {overlap,no_overlap})
-currPositionX(-1).
-currPositionY(-1).
-destinationX(-1).
-destinationY(-1).
+currPosition(-1,-1).
+destination(-1,-1).
 rslt_StepCoordinates(-1,-1).
 {end}
 
@@ -23,12 +21,12 @@ rslt_StepCoordinates(-1,-1).
 
 {begin namespace(priv_movement, local)}
 +!updateBeliefsForCalculation(CurrPositionX, CurrPositionY, DestinationX, DestinationY)
-	<-	-+currPositionX(CurrPositionX); -+currPositionY(CurrPositionY);
-		-+destinationX(DestinationX); -+destinationY(DestinationY);
+	<-	-+currPosition(CurrPositionX,CurrPositionY);
+		-+destination(DestinationX,DestinationY);
 	.
 +!calculateStepCoordinates
-	<- 	?currPositionX(CurrPositionX); ?currPositionY(CurrPositionY);
-		?destinationX(DestinationX); ?destinationY(DestinationY);
+	<- 	?currPosition(CurrPositionX,CurrPositionY);
+		?destination(DestinationX,DestinationY);
 		DistanceXAxis=math.abs(DestinationX-CurrPositionX);
 		DistanceYAxis=math.abs(DestinationY-CurrPositionY);
 		!chooseStepAxis(DistanceXAxis, DistanceYAxis);
@@ -39,12 +37,14 @@ rslt_StepCoordinates(-1,-1).
 	.
 +!chooseStepDirectionOnXAxis(DistanceXAxis)
 	: init_MapSize(TMP_X,_,overlap) & (DistanceXAxis > (TMP_X/2)-1)
-	<-	?currPositionX(CurrPositionX); ?destinationX(DestinationX);
+	<-	?currPosition(CurrPositionX,_); 
+		?destination(DestinationX,_);
 		-+rslt_StepCoordinates(-(DestinationX-CurrPositionX)/DistanceXAxis , 0);
 	.
 +!chooseStepDirectionOnXAxis(DistanceXAxis)
 	: (init_MapSize(TMP_X,_,overlap) & (DistanceXAxis <= (TMP_X/2)-1)) | init_MapSize(TMP_X,_,no_overlap)
-	<-	?currPositionX(CurrPositionX); ?destinationX(DestinationX);
+	<-	?currPosition(CurrPositionX,_); 
+		?destination(DestinationX,_);
 		-+rslt_StepCoordinates((DestinationX-CurrPositionX)/DistanceXAxis ,0);
 	.
 +!chooseStepAxis(DistanceXAxis, DistanceYAxis)
@@ -53,12 +53,14 @@ rslt_StepCoordinates(-1,-1).
 	.
 +!chooseStepDirectionOnYAxis(DistanceYAxis)
 	: init_MapSize(_,TMP_Y,overlap) & (DistanceYAxis > (TMP_Y/2)-1)
-	<-	?currPositionY(CurrPositionY); ?destinationY(DestinationY);
+	<-	?currPosition(_,CurrPositionY); 
+		?destination(_,DestinationY);
 		-+rslt_StepCoordinates(0, -(DestinationY-CurrPositionY)/DistanceYAxis);
 	.
 +!chooseStepDirectionOnYAxis(DistanceYAxis)
 	: (init_MapSize(_,TMP_Y,overlap) & (DistanceYAxis <= (TMP_Y/2)-1)) | init_MapSize(_,TMP_Y,no_overlap)
-	<-	?currPositionY(CurrPositionY); ?destinationY(DestinationY);
+	<-	?currPosition(_,CurrPositionY); 
+		?destination(_,DestinationY);
 		-+rslt_StepCoordinates(0, (DestinationY-CurrPositionY)/DistanceYAxis);
 	.
 {end}
