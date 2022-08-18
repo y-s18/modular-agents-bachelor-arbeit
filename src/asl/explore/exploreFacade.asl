@@ -1,5 +1,3 @@
-// { include("explore.asl", exploreFacade_explore) }
-// { include("movement/movementAdapter.asl", exploreFacade_movementAdapter) }
 { include("exploreAdapter.asl", exploreFacade_exploreAdapter) }
 { include("movement/movementFacade.asl", exploreFacade_movementFacade) }
 

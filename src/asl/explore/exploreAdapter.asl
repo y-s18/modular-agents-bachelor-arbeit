@@ -9,18 +9,6 @@ exploredListTaskboard([]).
 activatePlan(false).
 {end}
 
-+!calculateNextSpiralLine(AgentPosX, AgentPosY, SpiralStepRange, MultiplicatorMaximum)
-    <-  !exploreAdapter_explore::calculateNextSpiralLine(AgentPosX, AgentPosY, SpiralStepRange, MultiplicatorMaximum);
-        ?exploreAdapter_explore::export_EndpointCoordinates(CorrectedEndpointX, CorrectedEndpointY);
-        -+default::export_EndpointCoordinates(CorrectedEndpointX, CorrectedEndpointY);
-    .
-+!searchFor(Something, AgentPosX, AgentPosY)
-    <-  !exploreAdapter_explore::searchFor(Something);
-        !priv_exploreAdapter::processExploredPOIs(AgentPosX, AgentPosY);
-        -+priv_exploreAdapter::activatePlan(true);
-        !exportPOIs;
-        -+priv_exploreAdapter::activatePlan(false);
-    .
 +!updateExploredList(b0, UpdatedList)
     <-  -+priv_exploreAdapter::exploredListB0(UpdatedList);
         -+default::export_exploredListB0(UpdatedList);
@@ -37,6 +25,18 @@ activatePlan(false).
     <-  -+priv_exploreAdapter::exploredListTaskboard(UpdatedList);
         -+default::export_exploredListTaskboard(UpdatedList);
     .
++!calculateNextSpiralLine(AgentPosX, AgentPosY, SpiralStepRange, MultiplicatorMaximum)
+    <-  !exploreAdapter_explore::calculateNextSpiralLine(AgentPosX, AgentPosY, SpiralStepRange, MultiplicatorMaximum);
+        ?exploreAdapter_explore::export_EndpointCoordinates(CorrectedEndpointX, CorrectedEndpointY);
+        -+default::export_EndpointCoordinates(CorrectedEndpointX, CorrectedEndpointY);
+    .
++!searchFor(Something, AgentPosX, AgentPosY)
+    <-  !exploreAdapter_explore::searchFor(Something);
+        !priv_exploreAdapter::processExploredPOIs(AgentPosX, AgentPosY);
+        -+priv_exploreAdapter::activatePlan(true);
+        !exportPOIs;
+        -+priv_exploreAdapter::activatePlan(false);
+    .
 
 {begin namespace(priv_exploreAdapter, local)}
 +!processExploredPOIs(AgentPosX, AgentPosY)
@@ -50,8 +50,6 @@ activatePlan(false).
 +!updateBeliefsForProcessing(AgentPosX, AgentPosY)
     <-  ?exploreAdapter_explore::export_SearchRsltList(ImportedList);
         -+agentPosition(AgentPosX, AgentPosY);
-        // ?step(X); ?position(AX,AY); //Debug: check ImportedList elements
-        // +debugBelief____________________Value("searchRsltList: ", ImportedList, "in Step: ", X, myPosition(AX,AY));
         -+listToBeProcessed(ImportedList);
         .nth(0, ImportedList, FirstElement);
         -+elementToBeChecked(FirstElement);
@@ -73,7 +71,6 @@ activatePlan(false).
     <-  ?listToBeProcessed(ListToProcess);
         for( .member(thing(B0_X, B0_Y, dispenser, b0), ListToProcess)){
             !calculatePositionPOI(B0_X,B0_Y);
-            //TBD: ? -> -
             ?exploreAdapter_coordinatesCorrector::correctedCoordinatesPOI(X_PositionB0,Y_PositionB0);
             ?exploredListB0(ExploredListB0);
             if( not .member(b0(X_PositionB0,Y_PositionB0), ExploredListB0) ){
@@ -86,7 +83,6 @@ activatePlan(false).
     <-  ?listToBeProcessed(ListToProcess);
         for( .member(thing(B1_X, B1_Y, dispenser, b1), ListToProcess)){
             !calculatePositionPOI(B1_X,B1_Y);
-            //TBD: ? -> -
             ?exploreAdapter_coordinatesCorrector::correctedCoordinatesPOI(X_PositionB1,Y_PositionB1);
             ?exploredListB1(ExploredListB1);
             if( not .member(b1(X_PositionB1,Y_PositionB1), ExploredListB1) ){
@@ -99,7 +95,6 @@ activatePlan(false).
     <-  ?listToBeProcessed(ListToProcess);
         for( .member(thing(Taskboard_X, Taskboard_Y, taskboard,_), ListToProcess)){
             !calculatePositionPOI(Taskboard_X,Taskboard_Y);
-            //TBD: ? -> -
             ?exploreAdapter_coordinatesCorrector::correctedCoordinatesPOI(X_PositionTaskboard,Y_PositionTaskboard);
             ?exploredListTaskboard(ExploredListTaskboard);
             if( not .member(taskboard(X_PositionTaskboard,Y_PositionTaskboard), ExploredListTaskboard) ){
@@ -112,7 +107,6 @@ activatePlan(false).
     <-  ?listToBeProcessed(ListToProcess);
         for( .member(goal(Goal_X, Goal_Y), ListToProcess)){
             !calculatePositionPOI(Goal_X,Goal_Y);
-            //TBD: ? -> -
             ?exploreAdapter_coordinatesCorrector::correctedCoordinatesPOI(X_PositionGoal,Y_PositionGoal);
             ?exploredListGoal(ExploredListGoal);
             if( not .member(goal(X_PositionGoal,Y_PositionGoal), ExploredListGoal) ){
@@ -126,9 +120,6 @@ activatePlan(false).
         X_PositionPOI = AgentPosX + POI_X;
         Y_PositionPOI = AgentPosY + POI_Y;
         !exploreAdapter_coordinatesCorrector::correctCoordinatesPOI(X_PositionPOI,Y_PositionPOI);
-        // ?step(X); ?correctedCoordinatesPOI(B0X,B0Y); //Debug
-        // +debugBelief____________________Value("in Step: ", X, myPosition(AgentPosX, AgentPosY), "Distance to B0: ",POI_X,POI_Y);
-        // +debugBelief____________________Value("in Step: ", X, myPosition(AgentPosX, AgentPosY), "b0 correctedPos: ",B0X,B0Y);
     .
 {end}
 
