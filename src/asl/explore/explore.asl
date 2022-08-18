@@ -31,9 +31,7 @@ endpointCoordinates(-1,-1).
         ?priv_explore::spiralLineDirection(Direction);
         !priv_explore::calculateSpiralLineEndpoint(Direction);
         ?priv_explore::spiralLineEndpoint(X_Endpoint, Y_Endpoint);
-        // .include("helperModules/coordinatesCorrector.asl", explore_INCL_coordinatesCorrector);
         !explore_INCL_coordinatesCorrector::correctCoordinatesPOI(X_Endpoint, Y_Endpoint);
-        //TBD: change ? to -
         ?explore_INCL_coordinatesCorrector::correctedCoordinatesPOI(CorrectedEndpointX, CorrectedEndpointY);
         -+priv_explore::endpointCoordinates(CorrectedEndpointX, CorrectedEndpointY);
         -+export_EndpointCoordinates(CorrectedEndpointX, CorrectedEndpointY);
