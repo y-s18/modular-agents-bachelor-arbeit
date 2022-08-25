@@ -4,7 +4,7 @@
 {include("getBlock.asl", beliefBase_doTask)}
 {include("submitTask.asl", beliefBase_doTask)}
 {include("explore/exploreFacade.asl", doTask_exploreFacade)}
-{include("communication/communication.asl", doTask_communication)}
+// {include("communication/communication.asl", doTask_communication)}
 
 rangeToTaskboard(AgentPosX,AgentPosY,DestinationX,DestinationY, DistX, DistY) :- 
     ((math.abs(AgentPosX-DestinationX)>24 & DistX=50-math.abs(AgentPosX-DestinationX)) 
@@ -16,6 +16,7 @@ findall(ElementToFind, FoundList) :- .findall(ElementToFind, ElementToFind, Foun
 getListLength(List, Length) :- .length(List, Length).
 
 {begin namespace(priv_doTask, local)}
+communicationNamespace(comm). // belief parameter is what the agent used to include communication module
 agentPosition(-1,-1).
 currTaskboard(999, 999).
 currGoal(999, 999).
@@ -85,17 +86,33 @@ agentState(checkingTaskboard, true).
         -+priv_doTask::agentState(findingTasks, true);
         skip;//instead of !doTask so that we dont get stuck in !doTask loop
     .
-+default::didYouAcceptThisTask(AskedTask, AgentNum)[source(AgentName)]
-    <-  ?priv_doTask::tasksAskedAboutList(ListBeforeUpdate);
-        !storeReceivedTaskName(AskedTask, ListBeforeUpdate);
-        ?default::myAgentNum(MyAgentNum);
-        ?priv_doTask::latestTaskAskedAbout(LatestTask);
-        !answerReceivedQuestion(LatestTask, AskedTask, MyAgentNum, AgentNum, AgentName);
-        +debug___________________Question(didYouAcceptThisTask(AskedTask, AgentNum)[source(AgentName)]);
-        .abolish(default::didYouAcceptThisTask(AskedTask, AgentNum)[source(AgentName)]);
-        ?default::step(X);
-        +debug___________________belief(iAnsweredInStep,X);
++default::getTasksAskedAboutList(Return_TasksList)
+    <-  .abolish(default::getTasksAskedAboutList(Return_TasksList));
+        ?priv_doTask::tasksAskedAboutList(Return_TasksList);
     .
++default::executeStoreReceivedTaskName(AskedTask, ListBeforeUpdate)
+    <-  .abolish(default::executeStoreReceivedTaskName(AskedTask, ListBeforeUpdate));
+        !storeReceivedTaskName(AskedTask, ListBeforeUpdate);
+    .
++default::getLatestTaskAskedAbout(Return_LatestTask)
+    <-  .abolish(default::getLatestTaskAskedAbout(Return_LatestTask));
+        ?priv_doTask::latestTaskAskedAbout(Return_LatestTask);
+    .
++default::executeAnswerReceivedQuestion(Returned_Task, AskedTask, MyAgentNum,AgentNum, AgentName)
+    <-  .abolish(default::executeAnswerReceivedQuestion(Returned_Task, AskedTask, MyAgentNum,AgentNum, AgentName));
+        !answerReceivedQuestion(Returned_Task, AskedTask, MyAgentNum, AgentNum, AgentName);
+    .
+// +default::didYouAcceptThisTask(AskedTask, AgentNum)[source(AgentName)]
+//     <-  ?priv_doTask::tasksAskedAboutList(ListBeforeUpdate);
+//         !storeReceivedTaskName(AskedTask, ListBeforeUpdate);
+//         ?default::myAgentNum(MyAgentNum);
+//         ?priv_doTask::latestTaskAskedAbout(LatestTask);
+//         !answerReceivedQuestion(LatestTask, AskedTask, MyAgentNum, AgentNum, AgentName);
+//         +debug___________________Question(didYouAcceptThisTask(AskedTask, AgentNum)[source(AgentName)]);
+//         .abolish(default::didYouAcceptThisTask(AskedTask, AgentNum)[source(AgentName)]);
+//         ?default::step(X);
+//         +debug___________________belief(iAnsweredInStep,X);
+//     .
 +!storeReceivedTaskName(AskedTask, ListBeforeUpdate)
     : not checkIfMember(AskedTask, ListBeforeUpdate)
     <-  .concat(ListBeforeUpdate,[AskedTask], ListAfterUpdate);
@@ -109,12 +126,14 @@ agentState(checkingTaskboard, true).
     : (default::accepted(AcceptedTask) & AcceptedTask=AskedTask)
     | ((not default::accepted(_) | (default::accepted(AcceptedTask) & AcceptedTask\==AskedTask))
     & LatestTask=AskedTask & MyAgentNum>AgentNum)
-    <-  !doTask_communication::sendToAgent(AgentName, yesDidAccept(AskedTask, MyAgentNum));
+    <-  ?priv_doTask::communicationNamespace(CommNS);
+        !CommNS::sendToAgent(AgentName, yesDidAccept(AskedTask, MyAgentNum));
     .
 +!answerReceivedQuestion(LatestTask, AskedTask, MyAgentNum, AgentNum, AgentName)
     : (not default::accepted(_) | (default::accepted(AcceptedTask) & AcceptedTask\==AskedTask))
     & ((LatestTask=AskedTask & MyAgentNum<AgentNum) | LatestTask\==AskedTask)
-    <-  !doTask_communication::sendToAgent(AgentName, noDidNotAccept(AskedTask, MyAgentNum));
+    <-  ?priv_doTask::communicationNamespace(CommNS);
+        !CommNS::sendToAgent(AgentName, noDidNotAccept(AskedTask, MyAgentNum));
     .
 +!doTask(AgentPosX, AgentPosY)
     : priv_doTask::agentState(askingAboutTask, true) & beliefBase_doTask::currTasksAvailable(ListLen,TasksList) & ListLen>0
@@ -130,7 +149,8 @@ agentState(checkingTaskboard, true).
     : not checkIfMember(Task, ListBeforeUpdate)
     <-  -+priv_doTask::latestTaskAskedAbout(Task);
         ?default::myAgentNum(MyAgentNum);
-        !doTask_communication::broadcastToAllAgents(didYouAcceptThisTask(Task, MyAgentNum));
+        ?priv_doTask::communicationNamespace(CommNS);
+        !CommNS::broadcastToAllAgents(didYouAcceptThisTask(Task, MyAgentNum));
         .concat(ListBeforeUpdate,[Task], ListAfterUpdate);
         -+priv_doTask::tasksAskedAboutList(ListAfterUpdate);
         -+priv_doTask::agentState(askingAboutTask, false);

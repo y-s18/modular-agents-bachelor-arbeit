@@ -2,6 +2,7 @@
 { include("explore/exploreFacade.asl", agent_exploreFacade) }
 { include("doTask/doTask.asl", agent_doTask) }
 { include("init.asl")}
+{ include("communication/communication.asl", comm)}
 // thing(-17,0,taskboard,"").
 // thing(16,0,taskboard,"").
 // thing(13,-5,taskboard,"").
