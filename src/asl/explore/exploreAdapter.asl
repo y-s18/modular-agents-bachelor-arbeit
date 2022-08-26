@@ -70,7 +70,7 @@ getListLength(List, Length) :- .length(List, Length).
         }
     .
 +!broadcastElementIfNewPOIExplored(OldPOIList, NewPOIList)
-    : exploreFacade_exploreAdapter::getListLength(OldPOIList, OldList_Len) & exploreFacade_exploreAdapter::getListLength(NewPOIList, NewList_Len) & NewList_Len=OldList_Len
+    : getListLength(OldPOIList, OldList_Len) & getListLength(NewPOIList, NewList_Len) & NewList_Len=OldList_Len
     <-  .print("No new POIs! No need to broadcast!");
     .
 +!processExploredPOIs(AgentPosX, AgentPosY, Something)
