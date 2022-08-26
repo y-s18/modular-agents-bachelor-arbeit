@@ -1,5 +1,6 @@
 
-{ include("explore/exploreFacade.asl", agent_exploreFacade) }
+{ include("explore/exploreFacade.asl", explore) }
+{ include("movement/movementFacade.asl", move) }
 { include("doTask/doTask.asl", agent_doTask) }
 { include("init.asl")}
 { include("communication/communication.asl", comm)}
@@ -29,7 +30,7 @@
 		// }
 		// ?counter(Count);
 		// -+counter(Count+1);
-		!agent_exploreFacade::doSpiralExplore(AgentPosX, AgentPosY);
+		!explore::doSpiralExplore(AgentPosX, AgentPosY);
 		// !agent_exploreFacade::doRandomExplore(AgentPosX, AgentPosY);
 		
 		// !exploreFacade_exploreAdapter::searchFor(thing(_,_,taskboard,_), AgentPosX, AgentPosY);

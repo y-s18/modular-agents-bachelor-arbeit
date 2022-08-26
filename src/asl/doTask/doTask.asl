@@ -1,10 +1,9 @@
-{include("movement/movementFacade.asl", doTask_movementFacade)}
+// {include("movement/movementFacade.asl", doTask_movementFacade)}
 {include("helperModules/POIsComparison.asl", doTask_POIsComparison)}
 {include("acceptTask.asl", beliefBase_doTask)}
 {include("getBlock.asl", beliefBase_doTask)}
 {include("submitTask.asl", beliefBase_doTask)}
-{include("explore/exploreFacade.asl", doTask_exploreFacade)}
-// {include("communication/communication.asl", doTask_communication)}
+// {include("explore/exploreFacade.asl", doTask_exploreFacade)}
 
 rangeToTaskboard(AgentPosX,AgentPosY,DestinationX,DestinationY, DistX, DistY) :- 
     ((math.abs(AgentPosX-DestinationX)>24 & DistX=50-math.abs(AgentPosX-DestinationX)) 
@@ -17,6 +16,8 @@ getListLength(List, Length) :- .length(List, Length).
 
 {begin namespace(priv_doTask, local)}
 communicationNamespace(comm). // belief parameter is what the agent used to include communication module
+movementFacadeNamespace(move). // belief parameter is what the agent used to include movementFacade module
+exploreFacadeNamespace(explore). // belief parameter is what the agent used to include exploreFacade module
 agentPosition(-1,-1).
 currTaskboard(999, 999).
 currGoal(999, 999).
@@ -51,13 +52,15 @@ agentState(checkingTaskboard, true).
     : priv_doTask::movingToPOI(taskboard, true) & priv_doTask::currTaskboard(CurrTB_X,CurrTB_Y) 
     & rangeToTaskboard(AgentPosX,AgentPosY,CurrTB_X,CurrTB_Y,DistX,DistY) & DistX+DistY>2 
     <-  -+priv_doTask::agentPosition(AgentPosX, AgentPosY);
-        !doTask_exploreFacade::searchForPOIs(AgentPosX, AgentPosY);
+        ?priv_doTask::exploreFacadeNamespace(ExploreNS);
+        !ExploreNS::searchForPOIs(AgentPosX, AgentPosY);
         !checkForTaskboard(AgentPosX, AgentPosY);
         !moveToTaskboard(AgentPosX, AgentPosY);
     .
 +!moveToTaskboard(AgentPosX, AgentPosY)
     <-  ?priv_doTask::currTaskboard(CurrTB_X, CurrTB_Y);
-        !doTask_movementFacade::moveToLocation(AgentPosX,AgentPosY,CurrTB_X,CurrTB_Y);
+        ?priv_doTask::movementFacadeNamespace(MoveNS);
+        !MoveNS::moveToLocation(AgentPosX,AgentPosY,CurrTB_X,CurrTB_Y);
     .
 +!doTask(AgentPosX, AgentPosY)
     : priv_doTask::movingToPOI(taskboard, true) & priv_doTask::currTaskboard(CurrTB_X,CurrTB_Y) 
@@ -241,7 +244,8 @@ agentState(checkingTaskboard, true).
     : priv_doTask::exploringMissingPOIs(b0, true) & default::export_exploredListB0(List) & List=[]
     & beliefBase_doTask::multiBlockTask(false)
     <-  -+priv_doTask::agentPosition(AgentPosX, AgentPosY);
-        !doTask_exploreFacade::doSpiralExplore(AgentPosX, AgentPosY);
+        ?priv_doTask::exploreFacadeNamespace(ExploreNS);
+        !ExploreNS::doSpiralExplore(AgentPosX, AgentPosY);
     .
 +!checkForDispenser(AgentPosX, AgentPosY)
     : beliefBase_doTask::multiBlockTask(false) & beliefBase_doTask::currRequiredDisp(b1,_,_)
@@ -269,31 +273,36 @@ agentState(checkingTaskboard, true).
     : priv_doTask::exploringMissingPOIs(b1, true) & default::export_exploredListB1(List) & List=[]
     & beliefBase_doTask::multiBlockTask(false)
     <-  -+priv_doTask::agentPosition(AgentPosX, AgentPosY);
-        !doTask_exploreFacade::doSpiralExplore(AgentPosX, AgentPosY);
+        ?priv_doTask::exploreFacadeNamespace(ExploreNS);
+        !ExploreNS::doSpiralExplore(AgentPosX, AgentPosY);
     .
 +!doTask(AgentPosX, AgentPosY)
     : priv_doTask::movingToPOI(dispenser, true) & beliefBase_doTask::currRequiredDisp(b0,BlockFormX,BlockFormY)
     & priv_doTask::currB0(CurrB0_X, CurrB0_Y) & not (AgentPosX=CurrB0_X-BlockFormX & AgentPosY=CurrB0_Y-BlockFormY)
     <-  -+priv_doTask::agentPosition(AgentPosX, AgentPosY);
-        !doTask_exploreFacade::searchForPOIs(AgentPosX, AgentPosY);
+        ?priv_doTask::exploreFacadeNamespace(ExploreNS);
+        !ExploreNS::searchForPOIs(AgentPosX, AgentPosY);
         !moveToDisp(AgentPosX, AgentPosY);
     .
 +!moveToDisp(AgentPosX, AgentPosY)
     : beliefBase_doTask::currRequiredDisp(b0,BlockFormX,BlockFormY)
     <-  ?priv_doTask::currB0(CurrB0_X, CurrB0_Y);
-        !doTask_movementFacade::moveToLocation(AgentPosX,AgentPosY, CurrB0_X-BlockFormX, CurrB0_Y-BlockFormY);
+        ?priv_doTask::movementFacadeNamespace(MoveNS);
+        !MoveNS::moveToLocation(AgentPosX,AgentPosY, CurrB0_X-BlockFormX, CurrB0_Y-BlockFormY);
     .
 +!doTask(AgentPosX, AgentPosY)
     : priv_doTask::movingToPOI(dispenser, true) & beliefBase_doTask::currRequiredDisp(b1,BlockFormX,BlockFormY)
     & priv_doTask::currB1(CurrB1_X, CurrB1_Y) & not (AgentPosX=CurrB1_X-BlockFormX & AgentPosY=CurrB1_Y-BlockFormY)
     <-  -+priv_doTask::agentPosition(AgentPosX, AgentPosY);
-        !doTask_exploreFacade::searchForPOIs(AgentPosX, AgentPosY);
+        ?priv_doTask::exploreFacadeNamespace(ExploreNS);
+        !ExploreNS::searchForPOIs(AgentPosX, AgentPosY);
         !moveToDisp(AgentPosX, AgentPosY);
     .
 +!moveToDisp(AgentPosX, AgentPosY)
     : beliefBase_doTask::currRequiredDisp(b1,BlockFormX,BlockFormY)
     <-  ?priv_doTask::currB1(CurrB1_X, CurrB1_Y);
-        !doTask_movementFacade::moveToLocation(AgentPosX,AgentPosY, CurrB1_X-BlockFormX, CurrB1_Y-BlockFormY);
+        ?priv_doTask::movementFacadeNamespace(MoveNS);
+        !MoveNS::moveToLocation(AgentPosX,AgentPosY, CurrB1_X-BlockFormX, CurrB1_Y-BlockFormY);
     .
 +!doTask(AgentPosX, AgentPosY)
     : priv_doTask::movingToPOI(dispenser, true) & beliefBase_doTask::currRequiredDisp(b0,BlockFormX,BlockFormY)
@@ -425,18 +434,21 @@ agentState(checkingTaskboard, true).
 +!doTask(AgentPosX, AgentPosY)
     : priv_doTask::exploringMissingPOIs(goal, true) & default::export_exploredListGoal(List) & List=[]
     <-  -+priv_doTask::agentPosition(AgentPosX, AgentPosY);
-        !doTask_exploreFacade::doSpiralExplore(AgentPosX, AgentPosY);
+        ?priv_doTask::exploreFacadeNamespace(ExploreNS);
+        !ExploreNS::doSpiralExplore(AgentPosX, AgentPosY);
     .
 +!doTask(AgentPosX, AgentPosY)
     : priv_doTask::movingToPOI(goal, true) & priv_doTask::currGoal(CurrGoal_X, CurrGoal_Y)
     & not (AgentPosX=CurrGoal_X & AgentPosY=CurrGoal_Y)
     <-  -+priv_doTask::agentPosition(AgentPosX, AgentPosY);
-        !doTask_exploreFacade::searchForPOIs(AgentPosX, AgentPosY);
+        ?priv_doTask::exploreFacadeNamespace(ExploreNS);
+        !ExploreNS::searchForPOIs(AgentPosX, AgentPosY);
         !moveToGoal(AgentPosX, AgentPosY);
     .
 +!moveToGoal(AgentPosX, AgentPosY)
     <-  ?priv_doTask::currGoal(CurrGoal_X, CurrGoal_Y);
-        !doTask_movementFacade::moveToLocation(AgentPosX,AgentPosY, CurrGoal_X, CurrGoal_Y);
+        ?priv_doTask::movementFacadeNamespace(MoveNS);
+        !MoveNS::moveToLocation(AgentPosX,AgentPosY, CurrGoal_X, CurrGoal_Y);
     .
 +!doTask(AgentPosX, AgentPosY)
     : priv_doTask::movingToPOI(goal, true) & priv_doTask::currGoal(CurrGoal_X, CurrGoal_Y)
@@ -475,5 +487,6 @@ agentState(checkingTaskboard, true).
 +!doTask(AgentPosX, AgentPosY)
     : priv_doTask::agentState(failedSubmitExplore,true)
     <-  -+priv_doTask::agentPosition(AgentPosX, AgentPosY);
-        !doTask_exploreFacade::doSpiralExplore(AgentPosX, AgentPosY);
+        ?priv_doTask::exploreFacadeNamespace(ExploreNS);
+        !ExploreNS::doSpiralExplore(AgentPosX, AgentPosY);
     .
