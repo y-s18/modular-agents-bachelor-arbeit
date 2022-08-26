@@ -2,11 +2,14 @@
 { include("explore.asl", exploreAdapter_explore) }
 
 {begin namespace(priv_exploreAdapter, local)}
+communicationNamespace(comm). // belief parameter is what the agent used to include communication module
 exploredListB0([]).
 exploredListB1([]).
 exploredListGoal([]).
 exploredListTaskboard([]).
 activatePlan(false).
+
+getListLength(List, Length) :- .length(List, Length).
 {end}
 
 +!updateExploredList(b0, UpdatedList)
@@ -32,27 +35,57 @@ activatePlan(false).
     .
 +!searchFor(Something, AgentPosX, AgentPosY)
     <-  !exploreAdapter_explore::searchFor(Something);
-        !priv_exploreAdapter::processExploredPOIs(AgentPosX, AgentPosY);
+        !priv_exploreAdapter::storePOIList(Something, OldPOIList);
+        !priv_exploreAdapter::processExploredPOIs(AgentPosX, AgentPosY,Something);
+        !priv_exploreAdapter::storePOIList(Something, NewPOIList);
+        !priv_exploreAdapter::broadcastElementIfNewPOIExplored(OldPOIList,NewPOIList);
         -+priv_exploreAdapter::activatePlan(true);
         !exportPOIs;
         -+priv_exploreAdapter::activatePlan(false);
     .
-
 {begin namespace(priv_exploreAdapter, local)}
-+!processExploredPOIs(AgentPosX, AgentPosY)
++!storePOIList(Something, POIList)
+    <-  !priv_exploreAdapter::checkElementsType(Something);
+        ?priv_exploreAdapter::elementType(ElementType);
+        !priv_exploreAdapter::getPOIList(ElementType, POIList);
+    .
++!getPOIList(b0, POIList)
+    <-  ?priv_exploreAdapter::exploredListB0(POIList);
+    .
++!getPOIList(b1, POIList)
+    <-  ?priv_exploreAdapter::exploredListB1(POIList);
+    .
++!getPOIList(taskboard, POIList)
+    <-  ?priv_exploreAdapter::exploredListTaskboard(POIList);
+    .
++!getPOIList(goal, POIList)
+    <-  ?priv_exploreAdapter::exploredListGoal(POIList);
+    .
++!broadcastElementIfNewPOIExplored(OldPOIList, NewPOIList)
+    : getListLength(OldPOIList, OldList_Len) & getListLength(NewPOIList, NewList_Len) & NewList_Len>OldList_Len
+    <-  ?priv_exploreAdapter::communicationNamespace(CommNS);
+        for(.range(I,OldList_Len,NewList_Len-1)){
+            .nth(I,NewPOIList,POI);
+            !CommNS::broadcastToAllAgents(POI);
+        }
+    .
++!broadcastElementIfNewPOIExplored(OldPOIList, NewPOIList)
+    : exploreFacade_exploreAdapter::getListLength(OldPOIList, OldList_Len) & exploreFacade_exploreAdapter::getListLength(NewPOIList, NewList_Len) & NewList_Len=OldList_Len
+    <-  .print("No new POIs! No need to broadcast!");
+    .
++!processExploredPOIs(AgentPosX, AgentPosY, Something)
     : exploreAdapter_explore::export_SearchRsltList(ImportedList) & ImportedList \== []
-    <-  !updateBeliefsForProcessing(AgentPosX, AgentPosY);
+    <-  !updateBeliefsForProcessing(AgentPosX,AgentPosY,Something);
         ?elementToBeChecked(Element);
         !checkElementsType(Element);
         ?elementType(ElementType);
         !processImportedList(ElementType);
     .
-+!updateBeliefsForProcessing(AgentPosX, AgentPosY)
++!updateBeliefsForProcessing(AgentPosX, AgentPosY, Something)
     <-  ?exploreAdapter_explore::export_SearchRsltList(ImportedList);
         -+agentPosition(AgentPosX, AgentPosY);
         -+listToBeProcessed(ImportedList);
-        .nth(0, ImportedList, FirstElement);
-        -+elementToBeChecked(FirstElement);
+        -+elementToBeChecked(Something);
     .
 +!checkElementsType(Element)
     : Element = thing(_,_,dispenser,b0)
@@ -138,7 +171,7 @@ activatePlan(false).
     <-  .print("\n############\nPLAN FAILED: !exportPOIs can not be called from outside the module\n############\n");.
 
 {begin namespace(priv_exploreAdapter, local)}
-+!processExploredPOIs(AgentPosX, AgentPosY)
++!processExploredPOIs(AgentPosX, AgentPosY, Something)
     : exploreAdapter_explore::export_SearchRsltList(ImportedList) & ImportedList = []
     <-  .print("Empty list. No need for update");.
 {end}
