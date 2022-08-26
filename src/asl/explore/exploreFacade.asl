@@ -1,9 +1,10 @@
 { include("exploreAdapter.asl", exploreFacade_exploreAdapter) }
-{ include("movement/movementFacade.asl", exploreFacade_movementFacade) }
+// { include("movement/movementFacade.asl", exploreFacade_movementFacade) }
 
-// {begin namespace(priv_exploreFacade, local)}
+{begin namespace(priv_exploreFacade, local)}
+movementFacadeNamespace(move).
 // activatePlan(false).
-// {end}
+{end}
 
 +!doSpiralExplore(AgentPosX, AgentPosY)
     <-  
@@ -12,14 +13,16 @@
         // -+priv_exploreFacade::activatePlan(false);
         !exploreFacade_exploreAdapter::calculateNextSpiralLine(AgentPosX, AgentPosY, 4, 6);
 		?default::export_EndpointCoordinates(X_Endpoint, Y_Endpoint);
-        !exploreFacade_movementFacade::moveToLocation(AgentPosX, AgentPosY, X_Endpoint, Y_Endpoint);
+        ?priv_exploreFacade::movementFacadeNamespace(MoveNS);
+        !MoveNS::moveToLocation(AgentPosX, AgentPosY, X_Endpoint, Y_Endpoint);
     .
 +!doRandomExplore(AgentPosX, AgentPosY)
     <-  
         // -+priv_exploreFacade::activatePlan(true);
         !searchForPOIs(AgentPosX, AgentPosY);
         // -+priv_exploreFacade::activatePlan(false);
-        !exploreFacade_movementFacade::moveRandomly;
+        ?priv_exploreFacade::movementFacadeNamespace(MoveNS);
+        !MoveNS::moveRandomly;
     .
 +!searchForPOIs(AgentPosX, AgentPosY)
     // : priv_exploreFacade::activatePlan(true)
