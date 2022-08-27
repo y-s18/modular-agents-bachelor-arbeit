@@ -6,6 +6,7 @@ stepRangeMultiplicator(1). //1
 multiplicatorMaximum(-1). //6
 spiralLineDirection(nw). 
 endpointCoordinates(-1,-1).
+randomInitialDirection(true).
 {end}
 
 +!searchFor(Something)
@@ -23,10 +24,16 @@ endpointCoordinates(-1,-1).
     : SmthList \== []
     <-  -+searchRsltList(SmthList);.
 {end}
-
++!calculateNextSpiralLine(AgentPosX, AgentPosY, SpiralStepRange, MultiplicatorMaximum)
+    : priv_explore::randomInitialDirection(true)
+    <-  -+priv_explore::randomInitialDirection(false);
+        !priv_explore::chooseInitialExploreDirection;
+        !calculateNextSpiralLine(AgentPosX, AgentPosY, SpiralStepRange, MultiplicatorMaximum);
+    .
 +!calculateNextSpiralLine(AgentPosX, AgentPosY, SpiralStepRange, MultiplicatorMaximum)
     : (priv_explore::endpointCoordinates(SavedEndpointX,SavedEndpointY) 
       & (AgentPosX=SavedEndpointX & AgentPosY=SavedEndpointY)) | priv_explore::endpointCoordinates(-1,-1)
+      & priv_explore::randomInitialDirection(false)
     <-  !priv_explore::updateBeliefsForCalculation(AgentPosX,AgentPosY,SpiralStepRange,MultiplicatorMaximum);
         ?priv_explore::spiralLineDirection(Direction);
         !priv_explore::calculateSpiralLineEndpoint(Direction);
@@ -37,10 +44,27 @@ endpointCoordinates(-1,-1).
         -+export_EndpointCoordinates(CorrectedEndpointX, CorrectedEndpointY);
     .
 +!calculateNextSpiralLine(AgentPosX, AgentPosY, SpiralStepRange, MultiplicatorMaximum)
-    : priv_explore::endpointCoordinates(EndpointX,EndpointY) & not (AgentPosX=EndpointX & AgentPosY=EndpointY)
+    : priv_explore::endpointCoordinates(EndpointX,EndpointY) & not (AgentPosX=EndpointX & AgentPosY=EndpointY) 
+    & priv_explore::randomInitialDirection(false)
     <-  !priv_explore::updateAgentPosition(AgentPosX, AgentPosY);.
     
 {begin namespace(priv_explore, local)}
++!chooseInitialExploreDirection
+	<-	.random([1,2,3,4], RandomNum);
+		!priv_explore::chooseRandomSpiralLineDirection(RandomNum);
+	.
++!chooseRandomSpiralLineDirection(1)
+	<-	-+spiralLineDirection(ne);
+    .
++!chooseRandomSpiralLineDirection(2)
+	<-	-+spiralLineDirection(nw);
+    .
++!chooseRandomSpiralLineDirection(3)
+	<-	-+spiralLineDirection(se);
+    .
++!chooseRandomSpiralLineDirection(4)
+	<-	-+spiralLineDirection(sw);
+    .
 +!updateBeliefsForCalculation(AgentPosX, AgentPosY, SpiralStepRange, MultiplicatorMaximum)
     : stepRangeMultiplicator(StepRangeMultiplicator) 
     <-  -+priv_explore::spiralStepRange(SpiralStepRange);
